@@ -1,58 +1,46 @@
-# 6.1040 Project Framing: Guangdong Tigers
-## Jonathan Zhao, Anna Kaganov, Dylan Yu, Stephen Lee
+6.1040 Project Framing \- Guangdong Tigers  
+Jonathan Zhao, Dylan Yu, Stephen Lee, Anna Kaganov
 
-# Domain
-Household management and productivity, improving coordination in shared living spaces.
+**Domain**  
+Real time urban nightlife, location-based consumer information system
 
-# Problem
-Coming up with a fair system to distribute chores between a group of individuals such that everyone generally does the same amount of work while ensuring chores also get completed. 
+**Problem**  
+People frequently want to go out but have no reliable signal about how long the line is, how crowded the venue is, or whether it’s even worth going compared to choosing an alternative. Also, venues have a hard time getting reliable real-time data about capacity and flow in their events, which makes it more difficult to manage and even less reliable for the customers.
 
-# Evidence
- In our (Dylan and Stephen’s) living group, we are each obligated to do a certain amount of chores per semester. Our current system is to use a google spreadsheet, but this does not resolve load balancing issue (e.g. someone frontloading all their chores) or provide an easy way to verify chores are done. More generally, anyone not living alone would benefit from having an easy way to track chore completion.
+**Evidence**  
+People regularly complain about long lines at restaurants, bars, and clubs. People also spend time choosing where to go, depending on the amount of people at the event already. Venues are interested about how many people are waiting.
 
-# Comparables: 
-Tody is an app which offers chore tracking but focuses on gamification of doing chores, rather than dividing chores between people. 
-Flatastic is an app which targets shared living, but its chore function is limited and doesn’t integrate with scheduling or accountability features.
-Google Sheets can be used for chore tracking, but doesn’t allow for automation and reminders. 
-Pen and paper - Many living groups use pen and paper for chore tracking, however this method takes time and effort along with being an ineffective way for people to know what their weekly responsibilities are. Additionally this method has a high probability for human error and unfairness. 
+**Comparables**
 
-# Features:
-Tasks: Chores can be input, with their name, description, relative difficulty, frequency, and due date
+1) Google's ‘Popular Times’ Tab \- When you search up restaurants on Google, many have the option for you to see how busy it is according to the location history of users at the establishment. There are accuracy issues because it only counts those who have their location history enabled. Additionally, this feature misses a lot of information that a single user or venue could provide. Such as active events, exact wait times, what sports events are being shown, and general atmosphere  
+2) BarGlance app shows real time vibe measurements and crowd indicators, but does not offer venue side operations, predictive analytics
 
-User fairness: Users during a certain time period at the beginning of the week can claim chores, each chore they claim gives them a certain number of points based on relative difficulty. Users are maxed out a certain amount of points based on total points of all the chores and number of users. 
+**Features**
 
-Automated assignment: After the time period at the beginning of the week, the unclaimed chores are assigned to users. The assignment of what chores go to what people is based on who is the furthest way from the point maximum
+1) User reported wait times and real time feed of updates, crowd density and vibe level  
+2) Venue profiles with location, hours, peak times, events, and wait stats  
+3) Filtering venues by events   
+4) Push alerts for when wait times increase or decrease   
+5) Heat maps of areas with high activity  
+6) Predicted “peak” forecast based on patterns from previous data
 
-Chore tracking: When a user completes the chore they can log it in the app so other users can see what chores have and have not been completed
+**Ethical analysis**  
+Stakeholders:
 
-# Ethical Analysis
+1) Observation: Users often seek specific events at venues that can be difficult to discover online, such as trivia nights, live music, or certain sports games. Venues, in turn, aim to publicize these events to a broader audience beyond their regular patrons.  
+2) Design: Enabling both venues and users to report current events provides a clearer picture of a location’s atmosphere. User-submitted reports help fill gaps where venues do not publicize events online, making it easier for users to discover and attend these activities.
 
+Time: 
 
-## Time - Adaptation: What is a lifestyle change that your app may support? Does it inhibit any positive lifestyle changes, or encourage negative ones? 
-Observation: The app is designed to offer users greater control than their existing chore system. The app may improve users’ lifestyles by making them complete an appropriate amount of chores, which makes their shared living space more habitable, and also aid users with gaining discipline and responsibility.
+1) Observation: Individuals using this application to minimize wait times for typically lengthy tasks (i.e., DMV, pharmacy) would likely want to be alerted when wait times are low.  
+2) Design: Allowing users to set alerts for specific locations will help them take advantage of shorter wait times without needing to check constantly.
 
-Design: We could add widgets/notifications that vary based on a user’s performance. Users not performing up to par could get a sad notification with a red background saying “try harder”, and users overperforming could get a happy green notification saying “you did great!”
+Pervasiveness: Accounting for Culture \- How might your app be misunderstood by users who are unfamiliar with your culture?
 
+1) Observation: The check-in and real-time reporting feature could be seen as intrusive in cultures valuing personal privacy. Users may avoid contributing, reducing app effectiveness.  
+2) Design: Allow fully anonymous or opt-in contributions and offer the ability to blur location or generalize to neighborhoods rather than exact spots.
 
-## Stakeholders - Direct stakeholders : In what key roles will individuals interact directly with your app?
-Observation : The direct stakeholders of this app are those who live in a group where chores need to be assigned and completed individually. These direct stakeholders would likely be using the app to ensure fairness within task assignment. For that reason such individuals might not only care about the workload for the current week, but the overall workload of individuals over multiple weeks. 
+Values: Deliberate on and then designate three primary values you app ideally would support.
 
-Design : The app could keep track of all of the users total points they gathered over the entire semester. When assigning tasks at the beginning of the week, the app could not only take into account the users that week who signed up for the least amount, but also how many points each of those users have from the entire semester.
-
-
-## Pervasiveness - Accounting for Culture - How might your app be misunderstood by users who are unfamiliar with your culture?
-Observation: In some cultures, gender roles strongly influence task division, which may affect how users perceive fairness. The app’s assumption of equal participation conflicts with traditional norms or family hierarchies.
-
-Design: Instead of assuming all users share chores equally, the app will have different options for adjustable fairness settings. This allows households to define who is responsible for which type of tasks according to their own cultural or personal norms.
-
-
-## Values  - Choose Your Values - Designate three primary values your app would ideally support
-Observation: Some important values: fairness, self-efficacy, community. The chores app is designed so that each user completes their fair share of chores. The app promotes/encourages users to do their chores, an expected responsibility when living in a group. The app promotes doing chores, which strengthens the living group’s sense of community
-
-Design: The app’s visual design could include artworks that demonstrate the importance of community, fairness, and self-efficacy. The app could contain stat trackers that show the user how much they have done and how much the entire group has done.
-
-
-## Time - Long Term Health and Wellbeing - 3 to 5 ways your app influences health and well-being years after use
-Observation: The app is designed to encourage individual responsibility, a clean living area, and community effort. Using the app daily will ensure the user is responsible, motivated, and helps their community.
-
-Design: The app could have a stat tracker that tracks how many days the user has done their chore. There could even be a “streak” system like snapchat where users that do their chores daily get longer and longer streaks. 
+1) Observation: Privacy, community, and informed decision making. The app is designed to protect privacy, foster community engagement, and empower users to make informed decisions.  
+2) Design: Users can contribute anonymously or with blurring of location data to maintain privacy. Reputation systems, real-time feeds, and coordination features strengthen community participation. Live wait times, crowd indicators, hype scores, allow users to easily make choices. 
