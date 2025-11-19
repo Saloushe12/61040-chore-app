@@ -5,14 +5,21 @@ Jonathan Zhao, Dylan Yu, Stephen Lee, Anna Kaganov
 Real time urban nightlife, location-based consumer information system
 
 **Problem**  
-People frequently want to go out but have no reliable signal about how long the line is, how crowded the venue is, or whether it’s even worth going compared to choosing an alternative. Also, venues have a hard time getting reliable real-time data about capacity and flow in their events, which makes it more difficult to manage and even less reliable for the customers.
+People frequently want to go out but have no reliable signal about how long the line is, how crowded the venue is, or whether it's even worth going compared to choosing an alternative. Also, venues have a hard time getting reliable real-time data about capacity and flow in their events, which makes it more difficult to manage and even less reliable for the customers.
+
+**Target Users**  
+- Primary: Young adults (21-35) in urban areas who regularly visit bars, clubs, and restaurants
+- Secondary: Venue owners and managers seeking to optimize operations
 
 **Evidence**  
-People regularly complain about long lines at restaurants, bars, and clubs. People also spend time choosing where to go, depending on the amount of people at the event already. Venues are interested about how many people are waiting.
+- Researchers found that customers attribute a cost to waiting that corresponds to at least $40/hr of waiting time (Allon et al., 2011)
+- A study showed that in nightclub bars, as crowd density increases, serving time distributions shift to heavy-tailed behavior, meaning delays become far more variable and extreme (Stock et al., 2024)
+- People regularly complain about long lines at restaurants, bars, and clubs, and spend significant time choosing where to go based on expected crowd levels
+- Venues lack reliable data about current capacity and flow, making it difficult to manage operations and provide accurate information to customers
 
 **Comparables**
 
-1) Google's ‘Popular Times’ Tab \- When you search up restaurants on Google, many have the option for you to see how busy it is according to the location history of users at the establishment. There are accuracy issues because it only counts those who have their location history enabled. Additionally, this feature misses a lot of information that a single user or venue could provide. Such as active events, exact wait times, what sports events are being shown, and general atmosphere  
+1) Google's 'Popular Times' Tab - When you search up restaurants on Google, many have the option for you to see how busy it is according to the location history of users at the establishment. There are accuracy issues because it only counts those who have their location history enabled. Additionally, this feature misses a lot of information that a single user or venue could provide. Such as active events, exact wait times, what sports events are being shown, and general atmosphere  
 2) BarGlance app shows real time vibe measurements and crowd indicators, but does not offer venue side operations, predictive analytics
 
 **Features**
