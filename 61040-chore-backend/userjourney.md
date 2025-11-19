@@ -16,7 +16,7 @@ Baxter (M22) is undergraduate student at MIT. Lives in Cambridge with 2 roommate
 - Baxter filters for "high energy" venues when group wants to move somewhere more energetic
 - Baxter finds a club with DJ set starting and knows exactly what to expect
 
-## The Transformation
+## Before WaitLess vs. After WaitLess
 
 ### Before WaitLess
 - Baxter spends 20+ minutes in group chat trying to decide where to go, with no reliable information about wait times or crowd levels
