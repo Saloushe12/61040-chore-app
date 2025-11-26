@@ -264,6 +264,9 @@ All located in Cambridge, MA area.
 - [Concept Design](./waitless-backend/conceptdesign.md)
 - [Design Summary](./waitless-backend/designsummary.md)
 
+##Alpha Video
+[Video](https://github.com/Saloushe12/61040-chore-app/blob/main/Screen%20Recording%202025-11-25%20at%2011.54.15%20PM.mov)
+
 ## License
 
 MIT
