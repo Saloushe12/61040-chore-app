@@ -15,13 +15,14 @@ router.get(
     optionalAuth,
     query('latitude').isFloat({ min: -90, max: 90 }),
     query('longitude').isFloat({ min: -180, max: 180 }),
-    query('radius').optional().isInt({ min: 100, max: 50000 }),
+    query('radius').optional().isInt({ min: 100, max: 20000000 }), // Increased max to allow fetching all venues
     query('tags').optional(),
     validate
   ],
   async (req, res) => {
     try {
       const { latitude, longitude, radius = 5000, tags } = req.query;
+      const maxDistance = parseInt(radius);
 
       const query = {
         location: {
@@ -30,7 +31,7 @@ router.get(
               type: 'Point',
               coordinates: [parseFloat(longitude), parseFloat(latitude)]
             },
-            $maxDistance: parseInt(radius)
+            ...(maxDistance < 20000000 && { $maxDistance: maxDistance }) // Only add maxDistance if not fetching all
           }
         }
       };
@@ -41,7 +42,7 @@ router.get(
         query.tags = { $in: tagArray };
       }
 
-      const venues = await Venue.find(query).limit(50);
+      const venues = await Venue.find(query).limit(100); // Increased limit
 
       // Get metrics for all venues
       const venueIds = venues.map(v => v._id);
@@ -82,34 +83,38 @@ router.get('/:id', optionalAuth, async (req, res) => {
   }
 });
 
-// Create venue (operator only)
+// Create venue (any authenticated user)
 router.post(
   '/',
   [
     auth,
-    requireVenueOperator,
     body('name').trim().notEmpty(),
-    body('latitude').isFloat({ min: -90, max: 90 }),
-    body('longitude').isFloat({ min: -180, max: 180 }),
+    body('latitude').optional().isFloat({ min: -90, max: 90 }),
+    body('longitude').optional().isFloat({ min: -180, max: 180 }),
     body('address').trim().notEmpty(),
-    body('tags').isArray(),
+    body('tags').optional().isArray(),
     validate
   ],
   async (req, res) => {
     try {
       const { name, latitude, longitude, address, hours, tags, staticAttributes } = req.body;
 
+      // Use provided coordinates or default to (0, 0) if not provided
+      // In production, consider geocoding the address instead
+      const lat = latitude !== undefined ? parseFloat(latitude) : 0;
+      const lng = longitude !== undefined ? parseFloat(longitude) : 0;
+
       const venue = new Venue({
         name,
         location: {
           type: 'Point',
-          coordinates: [parseFloat(longitude), parseFloat(latitude)]
+          coordinates: [lng, lat]
         },
         address,
-        hours,
-        tags,
-        staticAttributes,
-        operatorUserId: req.userId
+        hours: hours || {},
+        tags: tags || [],
+        staticAttributes: staticAttributes || {},
+        operatorUserId: req.user.role === 'venue_operator' ? req.userId : undefined
       });
 
       await venue.save();
