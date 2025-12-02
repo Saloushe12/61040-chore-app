@@ -8,7 +8,7 @@ import './Home.css';
 
 const Home = () => {
   const [view, setView] = useState('list'); // 'list' or 'map'
-  const { venues, loading, error, refetch } = useVenues();
+  const { venues, loading, error } = useVenues();
   const { location, error: locationError } = useGeolocation();
   const navigate = useNavigate();
 
@@ -23,45 +23,44 @@ const Home = () => {
         <p className="app-subtitle">Find venues with real-time wait times</p>
       </header>
 
-      <div className="view-toggle">
-        <button
-          className={`toggle-btn ${view === 'list' ? 'active' : ''}`}
-          onClick={() => setView('list')}
-        >
-          List View
-        </button>
-        <button
-          className={`toggle-btn ${view === 'map' ? 'active' : ''}`}
-          onClick={() => setView('map')}
-        >
-          Map View
-        </button>
-        <button className="refresh-btn" onClick={refetch} disabled={loading}>
-          Refresh
-        </button>
-      </div>
-
-      {locationError && (
-        <div className="error-banner">
-          Location error: {locationError}. Please enable location access.
+      <div className="home-content">
+        <div className="view-toggle">
+          <button
+            className={`toggle-btn ${view === 'list' ? 'active' : ''}`}
+            onClick={() => setView('list')}
+          >
+            List View
+          </button>
+          <button
+            className={`toggle-btn ${view === 'map' ? 'active' : ''}`}
+            onClick={() => setView('map')}
+          >
+            Map View
+          </button>
         </div>
-      )}
 
-      <div className="content-area">
-        {view === 'list' ? (
-          <VenueList
-            venues={venues}
-            onVenueClick={handleVenueClick}
-            loading={loading}
-            error={error}
-          />
-        ) : (
-          <SimpleMap
-            venues={venues}
-            onVenueClick={handleVenueClick}
-            userLocation={location}
-          />
+        {locationError && (
+          <div className="error-banner">
+            Location error: {locationError}. Please enable location access.
+          </div>
         )}
+
+        <div className="content-area">
+          {view === 'list' ? (
+            <VenueList
+              venues={venues}
+              onVenueClick={handleVenueClick}
+              loading={loading}
+              error={error}
+            />
+          ) : (
+            <SimpleMap
+              venues={venues}
+              onVenueClick={handleVenueClick}
+              userLocation={location}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -43,7 +43,14 @@ export const useVenues = (radius = 5000, tags = null) => {
         radius,
         tags
       );
-      setVenues(fetchedVenues);
+      
+      // Check if data has actually changed
+      const hasChanged = JSON.stringify(fetchedVenues) !== JSON.stringify(venues);
+      
+      if (hasChanged) {
+        setVenues(fetchedVenues);
+      }
+      
       setError(null);
     } catch (err) {
       setError(err.message);

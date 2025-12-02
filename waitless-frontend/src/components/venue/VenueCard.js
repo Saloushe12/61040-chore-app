@@ -22,24 +22,47 @@ const VenueCard = ({ venue, onClick }) => {
     return colors[status] || '#9ca3af';
   };
 
+  const getStatusEmoji = (status) => {
+    const emojis = {
+      open: '✨',
+      closed: '🚫',
+      door_hold: '⏳'
+    };
+    return emojis[status] || '•';
+  };
+
   return (
-    <div className="venue-card" onClick={() => onClick(venue)}>
+    <div 
+      className="venue-card" 
+      onClick={() => onClick(venue)}
+      style={{
+        backgroundColor: '#1a1d3a',
+        color: '#ffffff',
+        border: '2px solid rgba(168, 85, 247, 0.5)',
+        borderRadius: '12px',
+        padding: '18px',
+        marginBottom: '12px'
+      }}
+    >
       <div className="venue-header">
-        <h3 className="venue-name">{name}</h3>
+        <h3 className="venue-name" style={{ color: '#ffffff' }}>{name}</h3>
         <span
           className="status-badge"
-          style={{ backgroundColor: getStatusColor(currentStatus) }}
+          style={{ 
+            backgroundColor: getStatusColor(currentStatus),
+            boxShadow: `0 0 20px ${getStatusColor(currentStatus)}`
+          }}
         >
-          {currentStatus.replace('_', ' ')}
+          {getStatusEmoji(currentStatus)} {currentStatus.replace('_', ' ')}
         </span>
       </div>
 
-      <p className="venue-address">{address}</p>
+      <p className="venue-address" style={{ color: '#cbd5e1' }}>{address}</p>
 
       {tags && tags.length > 0 && (
         <div className="venue-tags">
           {tags.map((tag) => (
-            <span key={tag} className="tag">
+            <span key={tag} className="tag" style={{ color: '#e9d5ff' }}>
               {tag}
             </span>
           ))}
@@ -49,14 +72,14 @@ const VenueCard = ({ venue, onClick }) => {
       {metrics && metrics.reportCount > 0 && (
         <div className="venue-metrics">
           <div className="metric">
-            <span className="metric-label">Wait:</span>
-            <span className="metric-value">
+            <span className="metric-label" style={{ color: '#94a3b8' }}>Wait:</span>
+            <span className="metric-value" style={{ color: '#ffffff' }}>
               {metrics.avgWait !== null ? `${Math.round(metrics.avgWait)} min` : 'N/A'}
             </span>
           </div>
 
           <div className="metric">
-            <span className="metric-label">Crowd:</span>
+            <span className="metric-label" style={{ color: '#94a3b8' }}>Crowd:</span>
             <span
               className="metric-value"
               style={{ color: getCrowdColor(metrics.crowdDensity) }}
@@ -66,14 +89,14 @@ const VenueCard = ({ venue, onClick }) => {
           </div>
 
           <div className="metric">
-            <span className="metric-label">Reports:</span>
-            <span className="metric-value">{metrics.reportCount || 0}</span>
+            <span className="metric-label" style={{ color: '#94a3b8' }}>Reports:</span>
+            <span className="metric-value" style={{ color: '#ffffff' }}>{metrics.reportCount || 0}</span>
           </div>
         </div>
       )}
 
       {(!metrics || metrics.reportCount === 0) && (
-        <p className="no-data">No recent data available</p>
+        <p className="no-data" style={{ color: '#94a3b8' }}>No recent data available</p>
       )}
     </div>
   );

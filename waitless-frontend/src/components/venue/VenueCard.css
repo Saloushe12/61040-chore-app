@@ -1,16 +1,50 @@
 .venue-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
+  background: #1a1d3a !important;
+  background-color: #1a1d3a !important;
+  border: 2px solid rgba(168, 85, 247, 0.5) !important;
+  border-radius: 12px !important;
+  padding: 18px !important;
+  margin-bottom: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8) !important;
+}
+
+.venue-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #a855f7, #ec4899);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.venue-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
 .venue-card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
   transform: translateY(-2px);
+  border-color: rgba(168, 85, 247, 0.5);
+}
+
+.venue-card:hover::before {
+  opacity: 1;
+}
+
+.venue-card:hover::after {
+  opacity: 1;
 }
 
 .venue-header {
@@ -18,28 +52,47 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .venue-name {
   margin: 0;
   font-size: 18px;
-  font-weight: 600;
-  color: #111827;
+  font-weight: 800;
+  color: #ffffff !important;
+  letter-spacing: 0.3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .status-badge {
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 700;
   color: white;
-  text-transform: capitalize;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 15px currentColor;
+  position: relative;
+  z-index: 1;
 }
 
 .venue-address {
   margin: 0 0 12px 0;
   font-size: 14px;
-  color: #6b7280;
+  color: #cbd5e1 !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+  font-weight: 500;
+}
+
+.venue-address::before {
+  content: '📍';
+  font-size: 14px;
 }
 
 .venue-tags {
@@ -47,22 +100,36 @@
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .tag {
-  padding: 4px 10px;
-  background-color: #f3f4f6;
+  padding: 5px 12px;
+  background: rgba(168, 85, 247, 0.25);
+  border: 1px solid rgba(168, 85, 247, 0.5);
   border-radius: 12px;
-  font-size: 12px;
-  color: #4b5563;
-  text-transform: capitalize;
+  font-size: 11px;
+  color: #e9d5ff !important;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+
+.tag:hover {
+  background: rgba(168, 85, 247, 0.3);
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
 }
 
 .venue-metrics {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid rgba(168, 85, 247, 0.2);
+  position: relative;
+  z-index: 1;
 }
 
 .metric {
@@ -72,20 +139,28 @@
 }
 
 .metric-label {
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 500;
+  font-size: 11px;
+  color: #94a3b8 !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .metric-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
+  font-size: 20px;
+  font-weight: 900;
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .no-data {
-  margin: 8px 0 0 0;
+  margin: 12px 0 0 0;
   font-size: 14px;
-  color: #9ca3af;
+  color: #94a3b8 !important;
   font-style: italic;
+  position: relative;
+  z-index: 1;
+  font-weight: 500;
 }
+
+/* Updated: Force dark backgrounds v2 */
