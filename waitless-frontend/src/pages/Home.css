@@ -146,6 +146,10 @@
   width: 100%;
 }
 
+.suggested-tab-content {
+  width: 100%;
+}
+
 .venues-header {
   display: flex;
   justify-content: space-between;

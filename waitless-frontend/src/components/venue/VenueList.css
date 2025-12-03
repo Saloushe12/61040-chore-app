@@ -1,7 +1,4 @@
 .venue-list {
-  max-height: calc(100vh - 300px);
-  overflow-y: auto;
-  padding-right: 8px;
   position: relative;
   z-index: 1;
 }

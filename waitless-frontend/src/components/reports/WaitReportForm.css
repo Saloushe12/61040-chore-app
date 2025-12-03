@@ -61,3 +61,14 @@
   margin: 12px 0;
   font-size: 14px;
 }
+
+.success-message {
+  padding: 12px;
+  background-color: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 6px;
+  color: #166534;
+  margin: 12px 0;
+  font-size: 14px;
+  font-weight: 500;
+}

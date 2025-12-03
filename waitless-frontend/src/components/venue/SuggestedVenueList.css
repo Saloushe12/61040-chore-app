@@ -1,0 +1,58 @@
+.suggested-venue-list {
+  width: 100%;
+}
+
+.suggestions-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.suggestions-header h3 {
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.suggestions-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.suggested-venue-list-message {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.suggestion-hint {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.suggested-venue-list-error {
+  text-align: center;
+  padding: 40px 20px;
+  color: #ef4444;
+  font-size: 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  margin: 20px 0;
+}
+

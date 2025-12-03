@@ -11,6 +11,8 @@ const VibeReportForm = ({ venue, onSubmit, onCancel }) => {
   const [musicTags, setMusicTags] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState('');
+  const [success, setSuccess] = useState(false);
   const { location } = useGeolocation();
 
   const musicOptions = ['edm', 'hip_hop', 'jazz', 'rock', 'pop', 'country', 'latin', 'live_band', 'dj', 'none'];
@@ -33,6 +35,8 @@ const VibeReportForm = ({ venue, onSubmit, onCancel }) => {
     setSubmitting(true);
 
     try {
+      setError('');
+      setWarning('');
       const result = await reportsService.submitVibeReport(venue._id, {
         crowdDensity,
         noiseLevel,
@@ -42,10 +46,21 @@ const VibeReportForm = ({ venue, onSubmit, onCancel }) => {
       });
 
       if (!result.geofence.verified) {
-        setError(result.message);
+        // Report was saved but not verified - show warning, don't auto-close
+        setWarning(
+          `⚠️ Report saved, but you're ${result.geofence.distance}m away from the venue (max ${result.geofence.radius}m). ` +
+          `This report won't be included in metrics. Please move closer to the venue and try again.`
+        );
+        // Don't call onSubmit() here - let user see the warning
+        return;
       }
 
-      onSubmit();
+      // Success - verified report
+      setSuccess(true);
+      setTimeout(() => {
+        onSubmit();
+        setSuccess(false);
+      }, 1500); // Show success message briefly before closing
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to submit report');
     } finally {
@@ -125,6 +140,8 @@ const VibeReportForm = ({ venue, onSubmit, onCancel }) => {
       </div>
 
       {error && <div className="error-message">{error}</div>}
+      {warning && <div className="warning-message">{warning}</div>}
+      {success && <div className="success-message">✓ Vibe report submitted successfully! Your report will appear in metrics.</div>}
 
       {!location && <div className="warning-message">Waiting for location access...</div>}
 
@@ -132,9 +149,9 @@ const VibeReportForm = ({ venue, onSubmit, onCancel }) => {
         <Button
           type="submit"
           variant="primary"
-          disabled={submitting || !location}
+          disabled={submitting || !location || success}
         >
-          {submitting ? 'Submitting...' : 'Submit Vibe'}
+          {submitting ? 'Submitting...' : success ? 'Submitted!' : 'Submit Vibe'}
         </Button>
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel

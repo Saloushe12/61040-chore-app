@@ -33,5 +33,11 @@ export const venuesService = {
     const params = dayOfWeek !== null ? { dayOfWeek } : {};
     const response = await api.get(`/venues/${id}/forecast`, { params });
     return response.data;
+  },
+
+  async getSuggestedVenues(latitude, longitude, radius = 10000) {
+    const params = { latitude, longitude, radius };
+    const response = await api.get('/venues/suggested', { params });
+    return response.data.suggestions;
   }
 };

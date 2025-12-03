@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVenues } from '../hooks/useVenues';
 import { useGeolocation } from '../hooks/useGeolocation';
+import { useSuggestedVenues } from '../hooks/useSuggestedVenues';
 import VenueList from '../components/venue/VenueList';
+import SuggestedVenueList from '../components/venue/SuggestedVenueList';
 import GoogleMap from '../components/map/GoogleMap';
 import AddVenueForm from '../components/venue/AddVenueForm';
 import './Home.css';
 
 const Home = () => {
-  const [activeTab, setActiveTab] = useState('venues'); // 'venues' or 'map'
+  const [activeTab, setActiveTab] = useState('suggested'); // 'suggested', 'venues', or 'map'
   const [showAddForm, setShowAddForm] = useState(false);
   const { venues, loading, error, refetch, addVenue } = useVenues();
+  const { suggestions, loading: suggestionsLoading, error: suggestionsError, refetch: refetchSuggestions } = useSuggestedVenues();
   const { location, error: locationError } = useGeolocation();
   const navigate = useNavigate();
 
@@ -41,6 +44,12 @@ const Home = () => {
         <div className="tabs-container">
           <div className="tabs">
             <button
+              className={`tab ${activeTab === 'suggested' ? 'active' : ''}`}
+              onClick={() => setActiveTab('suggested')}
+            >
+              Suggested
+            </button>
+            <button
               className={`tab ${activeTab === 'venues' ? 'active' : ''}`}
               onClick={() => setActiveTab('venues')}
             >
@@ -62,6 +71,17 @@ const Home = () => {
         )}
 
         <div className="content-area">
+          {activeTab === 'suggested' && (
+            <div className="suggested-tab-content">
+              <SuggestedVenueList
+                suggestions={suggestions}
+                onVenueClick={handleVenueClick}
+                loading={suggestionsLoading}
+                error={suggestionsError}
+              />
+            </div>
+          )}
+
           {activeTab === 'venues' && (
             <div className="venues-tab-content">
               <div className="venues-header">
