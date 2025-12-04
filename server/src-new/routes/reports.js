@@ -28,9 +28,18 @@ router.post(
   [
     auth,
     body('venueId').isMongoId(),
-    body('reportedWaitMinutes').isInt({ min: 0, max: 300 }),
-    body('latitude').isFloat({ min: -90, max: 90 }),
-    body('longitude').isFloat({ min: -180, max: 180 }),
+    body('reportedWaitMinutes')
+      .toInt()
+      .isInt({ min: 0, max: 300 })
+      .withMessage('Wait time must be an integer between 0 and 300 minutes'),
+    body('latitude')
+      .toFloat()
+      .isFloat({ min: -90, max: 90 })
+      .withMessage('Latitude must be a number between -90 and 90'),
+    body('longitude')
+      .toFloat()
+      .isFloat({ min: -180, max: 180 })
+      .withMessage('Longitude must be a number between -180 and 180'),
     validate,
   ],
   async (req, res) => {
@@ -107,17 +116,51 @@ router.post(
   '/vibe',
   [
     auth,
-    body('venueId').isMongoId(),
-    body('crowdDensity').isIn(['low', 'medium', 'high']),
-    body('noiseLevel').isIn(['chill', 'moderate', 'loud']),
-    body('energyLevel').isIn(['low', 'medium', 'hype']),
-    body('musicTags').isArray(),
-    body('latitude').isFloat({ min: -90, max: 90 }),
-    body('longitude').isFloat({ min: -180, max: 180 }),
+    body('venueId')
+      .isMongoId()
+      .withMessage('Invalid venue ID'),
+    body('crowdDensity')
+      .isIn(['low', 'medium', 'high'])
+      .withMessage('Crowd density must be one of: low, medium, high'),
+    body('noiseLevel')
+      .isIn(['chill', 'moderate', 'loud'])
+      .withMessage('Noise level must be one of: chill, moderate, loud'),
+    body('energyLevel')
+      .isIn(['low', 'medium', 'hype'])
+      .withMessage('Energy level must be one of: low, medium, hype'),
+    body('musicTags')
+      .isArray({ min: 0 })
+      .withMessage('Music tags must be an array')
+      .custom((tags) => {
+        // Allow empty array or array of strings
+        if (!Array.isArray(tags)) {
+          throw new Error('Music tags must be an array');
+        }
+        // Validate each tag is a string (optional validation)
+        return true;
+      }),
+    body('latitude')
+      .toFloat()
+      .isFloat({ min: -90, max: 90 })
+      .withMessage('Latitude must be a number between -90 and 90'),
+    body('longitude')
+      .toFloat()
+      .isFloat({ min: -180, max: 180 })
+      .withMessage('Longitude must be a number between -180 and 180'),
     validate,
   ],
   async (req, res) => {
     try {
+      console.log('Vibe report submission:', {
+        venueId: req.body.venueId,
+        crowdDensity: req.body.crowdDensity,
+        noiseLevel: req.body.noiseLevel,
+        energyLevel: req.body.energyLevel,
+        musicTags: req.body.musicTags,
+        latitude: req.body.latitude,
+        longitude: req.body.longitude,
+      });
+
       const {
         venueId,
         crowdDensity,
