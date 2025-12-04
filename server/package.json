@@ -10,7 +10,8 @@
     "dev:new": "nodemon src-new/server.js",
     "test": "jest",
     "seed": "node src/utils/seed.js",
-    "seed:reports": "node src/utils/seedReports.js"
+    "seed:reports": "node src/utils/seedReports.js",
+    "seed:new": "node src-new/utils/seed.js"
   },
   "keywords": [
     "nightlife",
