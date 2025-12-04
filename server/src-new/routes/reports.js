@@ -43,8 +43,20 @@ router.post(
         return res.status(404).json({ error: 'Venue not found' });
       }
 
-      // Spam prevention: still enforced via original Mongoose-based WaitReport in src
-      // or can be ported to concept layer later.
+      // Spam prevention: check for recent report from this user (3 hours)
+      const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+      const hasRecentReport = await waitReportConcept._hasRecentReportForVenue({
+        userId: req.userId.toString(),
+        venueId,
+        since: threeHoursAgo,
+      });
+
+      if (hasRecentReport) {
+        return res.status(429).json({
+          error:
+            'You already submitted a report for this venue recently. Please wait before submitting another.',
+        });
+      }
 
       // Verify geofence using existing service
       const userLocation = { latitude, longitude };

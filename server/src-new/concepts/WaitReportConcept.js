@@ -169,6 +169,26 @@ class WaitReportConcept {
       })
       .toArray();
   }
+
+  /**
+   * _hasRecentReportForVenue(userId, venueId, since): internal helper for spam prevention
+   * Checks if user has submitted a report for this venue within the time window
+   *
+   * @param {Object} params
+   * @param {string} params.userId
+   * @param {string} params.venueId
+   * @param {Date} params.since
+   * @returns {Promise<boolean>}
+   */
+  async _hasRecentReportForVenue({ userId, venueId, since }) {
+    const reports = await this._reports();
+    const count = await reports.countDocuments({
+      userId: new ObjectId(userId),
+      venueId: new ObjectId(venueId),
+      createdAt: { $gte: since },
+    });
+    return count > 0;
+  }
 }
 
 module.exports = WaitReportConcept;

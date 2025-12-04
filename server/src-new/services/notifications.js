@@ -55,6 +55,17 @@ async function getCurrentVenueMetricsConcept(venueId, timeWindowMinutes = 30) {
   };
 }
 
+// Get aggregated metrics for multiple venues (similar to src/services/aggregation.js)
+async function getMultipleVenueMetricsConcept(venueIds, timeWindowMinutes = 30) {
+  const metricsMap = {};
+
+  for (const venueId of venueIds) {
+    metricsMap[venueId] = await getCurrentVenueMetricsConcept(venueId, timeWindowMinutes);
+  }
+
+  return metricsMap;
+}
+
 // Trigger alerts for a venue based on current metrics and active subscriptions
 const triggerAlertsForVenue = async (venueId, io) => {
   try {
@@ -142,6 +153,11 @@ const triggerEventAlerts = async (venueId, eventTag, io) => {
   }
 };
 
-module.exports = { triggerAlertsForVenue, triggerEventAlerts };
+module.exports = { 
+  triggerAlertsForVenue, 
+  triggerEventAlerts,
+  getCurrentVenueMetricsConcept,
+  getMultipleVenueMetricsConcept,
+};
 
 
