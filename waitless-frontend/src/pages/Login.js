@@ -11,6 +11,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const { login, register } = useContext(AuthContext);
@@ -19,6 +20,14 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setPasswordError('');
+
+    // Validate password length for sign up
+    if (isRegister && password.length < 6) {
+      setPasswordError('Password needs to be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -68,9 +77,20 @@ const Login = () => {
             label="Password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              // Validate password length for sign up
+              if (isRegister) {
+                if (e.target.value.length > 0 && e.target.value.length < 6) {
+                  setPasswordError('Password needs to be at least 6 characters');
+                } else {
+                  setPasswordError('');
+                }
+              }
+            }}
             placeholder="Enter your password"
             required
+            error={passwordError}
           />
 
           {error && <div className="error-message">{error}</div>}
@@ -93,6 +113,7 @@ const Login = () => {
             onClick={() => {
               setIsRegister(!isRegister);
               setError('');
+              setPasswordError('');
             }}
           >
             {isRegister ? 'Sign In' : 'Sign Up'}
