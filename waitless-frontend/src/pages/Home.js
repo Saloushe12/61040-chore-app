@@ -18,7 +18,13 @@ const Home = () => {
   const navigate = useNavigate();
 
   const handleVenueClick = (venue) => {
-    navigate(`/venue/${venue._id}`);
+    // Handle both _id and venueId for compatibility
+    const venueId = venue._id || venue.venueId;
+    if (!venueId) {
+      console.error('Venue missing ID:', venue);
+      return;
+    }
+    navigate(`/venue/${venueId}`);
   };
 
   const handleVenueAdded = async (venue) => {

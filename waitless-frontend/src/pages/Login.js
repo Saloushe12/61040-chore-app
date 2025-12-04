@@ -11,20 +11,22 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const { login, register } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // Password requirements
+  const MIN_PASSWORD_LENGTH = 6;
+  const passwordMeetsRequirements = password.length >= MIN_PASSWORD_LENGTH;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setPasswordError('');
 
-    // Validate password length for sign up
-    if (isRegister && password.length < 6) {
-      setPasswordError('Password needs to be at least 6 characters');
+    // Validate password requirements for registration
+    if (isRegister && !passwordMeetsRequirements) {
+      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long`);
       return;
     }
 
@@ -73,32 +75,37 @@ const Login = () => {
             required
           />
 
-          <Input
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              // Validate password length for sign up
-              if (isRegister) {
-                if (e.target.value.length > 0 && e.target.value.length < 6) {
-                  setPasswordError('Password needs to be at least 6 characters');
-                } else {
-                  setPasswordError('');
-                }
-              }
-            }}
-            placeholder="Enter your password"
-            required
-            error={passwordError}
-          />
+          <div className="password-input-group">
+            <Input
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError(''); // Clear error when user types
+              }}
+              placeholder="Enter your password"
+              required
+              error={isRegister && password.length > 0 && !passwordMeetsRequirements}
+            />
+            {isRegister && (
+              <div className="password-requirements">
+                <p className="requirements-title">Password requirements:</p>
+                <ul className="requirements-list">
+                  <li className={password.length >= MIN_PASSWORD_LENGTH ? 'requirement-met' : 'requirement-unmet'}>
+                    At least {MIN_PASSWORD_LENGTH} characters
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
 
           {error && <div className="error-message">{error}</div>}
 
           <Button
             type="submit"
             variant="primary"
-            disabled={loading}
+            disabled={loading || (isRegister && !passwordMeetsRequirements)}
             className="login-button"
           >
             {loading ? 'Please wait...' : isRegister ? 'Sign Up' : 'Sign In'}
@@ -113,7 +120,7 @@ const Login = () => {
             onClick={() => {
               setIsRegister(!isRegister);
               setError('');
-              setPasswordError('');
+              setPassword(''); // Clear password when switching modes
             }}
           >
             {isRegister ? 'Sign In' : 'Sign Up'}
