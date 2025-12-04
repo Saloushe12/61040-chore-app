@@ -54,6 +54,10 @@
   margin-bottom: 8px;
   position: relative;
   z-index: 1;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
 .venue-name {
@@ -63,6 +67,8 @@
   color: #ffffff !important;
   letter-spacing: 0.3px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 .status-badge {

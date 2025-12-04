@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { venuesService } from '../services/venues';
 import { useGeolocation } from './useGeolocation';
 
@@ -7,16 +7,29 @@ export const useSuggestedVenues = (radius = 10000) => {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const hasLoadedRef = useRef(false);
+  const lastLocationRef = useRef(null);
 
   useEffect(() => {
     if (!location) {
       setSuggestions([]);
       setError(null);
+      hasLoadedRef.current = false;
+      lastLocationRef.current = null;
       return;
     }
 
+    // Check if location actually changed (not just a refetch)
+    const locationKey = `${location.latitude.toFixed(4)},${location.longitude.toFixed(4)}`;
+    const isNewLocation = lastLocationRef.current !== locationKey;
+    lastLocationRef.current = locationKey;
+
     const fetchSuggestions = async () => {
-      setLoading(true);
+      // Only show loading if we haven't loaded yet OR location changed significantly
+      const shouldShowLoading = !hasLoadedRef.current || isNewLocation;
+      if (shouldShowLoading) {
+        setLoading(true);
+      }
       try {
         const fetchedSuggestions = await venuesService.getSuggestedVenues(
           location.latitude,
@@ -25,9 +38,13 @@ export const useSuggestedVenues = (radius = 10000) => {
         );
         setSuggestions(fetchedSuggestions || []);
         setError(null);
+        hasLoadedRef.current = true;
       } catch (err) {
         setError(err.message);
-        setSuggestions([]);
+        // Only clear suggestions if this is the first load
+        if (!hasLoadedRef.current) {
+          setSuggestions([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -38,11 +55,10 @@ export const useSuggestedVenues = (radius = 10000) => {
 
   const refetch = async () => {
     if (!location) {
-      setSuggestions([]);
       return;
     }
 
-    setLoading(true);
+    // Don't set loading on refetch - keep existing suggestions visible
     try {
       const fetchedSuggestions = await venuesService.getSuggestedVenues(
         location.latitude,
@@ -53,8 +69,7 @@ export const useSuggestedVenues = (radius = 10000) => {
       setError(null);
     } catch (err) {
       setError(err.message);
-    } finally {
-      setLoading(false);
+      // Don't clear suggestions on refetch error
     }
   };
 

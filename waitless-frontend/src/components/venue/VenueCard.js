@@ -37,6 +37,7 @@ const VenueCard = ({ venue, onClick }) => {
       onClick={() => onClick(venue)}
       style={{
         backgroundColor: '#1a1d3a',
+        background: '#1a1d3a',
         color: '#ffffff',
         border: '2px solid rgba(168, 85, 247, 0.5)',
         borderRadius: '12px',
