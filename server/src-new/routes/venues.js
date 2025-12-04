@@ -67,7 +67,28 @@ router.get(
         tags: tagArray,
       });
 
-      res.json(result);
+      // Deduplicate venues by ID and name+address
+      const venues = result.venues || [];
+      const seenIds = new Set();
+      const seenKeys = new Set();
+      const deduplicatedVenues = venues.filter((venue) => {
+        const id = String(venue._id || venue.venueId || '').toLowerCase().trim();
+        const key = `${venue.name || ''}|${venue.address || ''}`.toLowerCase().trim();
+        
+        // Skip if we've seen this ID or name+address combination
+        if (!id || id === 'undefined' || id === 'null' || seenIds.has(id)) {
+          return false;
+        }
+        if (key && seenKeys.has(key)) {
+          return false;
+        }
+        
+        seenIds.add(id);
+        if (key) seenKeys.add(key);
+        return true;
+      });
+
+      res.json({ venues: deduplicatedVenues });
     } catch (error) {
       console.error('Concept get venues error:', error);
       res.status(500).json({ error: 'Failed to fetch venues' });
@@ -92,6 +113,27 @@ router.get(
       const userLng = parseFloat(longitude);
       const maxDistance = parseInt(radius, 10);
 
+      // Helper function to normalize venue ID to string
+      // Always prefer venueId over _id for consistency
+      const normalizeVenueId = (venue) => {
+        if (!venue) return null;
+        
+        // Prefer venueId, then _id
+        let id = venue.venueId || venue._id;
+        if (!id) return null;
+        
+        // Handle ObjectId objects
+        if (id.toHexString && typeof id.toHexString === 'function') {
+          return id.toHexString();
+        }
+        
+        // Handle strings - normalize to lowercase for consistency
+        const idStr = String(id).trim().toLowerCase();
+        if (!idStr || idStr === 'undefined' || idStr === 'null' || idStr === '') return null;
+        
+        return idStr;
+      };
+
       // Use NearbyVenuesSync to get closest venues
       const nearbyResult = await nearbyVenuesSync({
         latitude: userLat,
@@ -100,7 +142,24 @@ router.get(
         tags: undefined,
       });
       const nearbyVenues = nearbyResult.venues || [];
-      const topNearby = nearbyVenues.slice(0, 20);
+      
+      // Deduplicate nearby venues by ID, then sort by distance, then take top 20
+      const nearbyVenueIds = new Set();
+      const deduplicatedNearby = nearbyVenues.filter((venue) => {
+        const id = normalizeVenueId(venue);
+        if (!id || nearbyVenueIds.has(id)) return false;
+        nearbyVenueIds.add(id);
+        return true;
+      });
+      
+      // Sort by distance to get actual closest venues
+      deduplicatedNearby.sort((a, b) => {
+        const distA = a.distanceMeters || 0;
+        const distB = b.distanceMeters || 0;
+        return distA - distB;
+      });
+      
+      const topNearby = deduplicatedNearby.slice(0, 20);
 
       // Find trending venues (high report activity in last 2 hours)
       const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
@@ -132,49 +191,101 @@ router.get(
         .slice(0, 10)
         .map((item) => item.venueId);
 
-      // Fetch trending venues
+      // Fetch trending venues - deduplicate venue IDs first
+      const uniqueTrendingIds = [...new Set(trendingVenueIds)];
       const trendingVenues = [];
-      for (const venueId of trendingVenueIds) {
+      for (const venueId of uniqueTrendingIds) {
         const [venue] = await venueConcept._getVenueDetails({ venueId });
         if (venue) {
           trendingVenues.push(venue);
         }
       }
+      
+      // Additional deduplication of trending venues by normalized ID
+      const trendingVenueIdsSeen = new Set();
+      const deduplicatedTrending = trendingVenues.filter((venue) => {
+        const id = normalizeVenueId(venue);
+        if (!id || trendingVenueIdsSeen.has(id)) return false;
+        trendingVenueIdsSeen.add(id);
+        return true;
+      });
 
       // Create suggestion objects with reasons
+      // Use both ID and name+address as keys to catch duplicates
       const venueMap = new Map();
+      const venueKeys = new Set(); // Track by name+address as fallback
 
-      // Add closest venues (top 10)
+      // Add closest venues (top 10) - normalize IDs to strings
       topNearby.slice(0, 10).forEach((venue) => {
-        const venueId = venue._id || venue.venueId;
+        const venueId = normalizeVenueId(venue);
+        if (!venueId) return; // Skip invalid venues
+        
+        // Create a unique key from name + address as fallback
+        const venueKey = `${venue.name || ''}|${venue.address || ''}`.toLowerCase().trim();
+        
+        // Skip if already in map by ID OR by name+address
+        if (venueMap.has(venueId) || venueKeys.has(venueKey)) {
+          return;
+        }
+        
+        venueKeys.add(venueKey);
+        
+        // Normalize the venue object to have consistent ID fields
+        const normalizedVenue = {
+          ...venue,
+          _id: venueId,
+          venueId: venueId,
+        };
+        
         const venueLat = venue.location?.lat || venue.location?.coordinates?.[1];
         const venueLon = venue.location?.lon || venue.location?.coordinates?.[0];
         const distance = calculateDistance(userLat, userLng, venueLat, venueLon);
 
-        venueMap.set(venueId.toString(), {
-          venue,
+        venueMap.set(venueId, {
+          venue: normalizedVenue,
           reasons: ['closest'],
           distance,
-          reportCount: reportCountsMap[venueId.toString()] || 0,
+          reportCount: reportCountsMap[venueId] || 0,
         });
       });
 
-      // Add trending venues
-      trendingVenues.forEach((venue) => {
-        const venueId = venue._id || venue.venueId;
+      // Add trending venues - normalize IDs to strings
+      deduplicatedTrending.forEach((venue) => {
+        const venueId = normalizeVenueId(venue);
+        if (!venueId) return; // Skip invalid venues
+        
+        // Create a unique key from name + address as fallback
+        const venueKey = `${venue.name || ''}|${venue.address || ''}`.toLowerCase().trim();
+        
+        // Normalize the venue object to have consistent ID fields
+        const normalizedVenue = {
+          ...venue,
+          _id: venueId,
+          venueId: venueId,
+        };
+        
         const venueLat = venue.location?.lat || venue.location?.coordinates?.[1];
         const venueLon = venue.location?.lon || venue.location?.coordinates?.[0];
         const distance = calculateDistance(userLat, userLng, venueLat, venueLon);
-        const reportCount = reportCountsMap[venueId.toString()] || 0;
+        const reportCount = reportCountsMap[venueId] || 0;
 
-        if (venueMap.has(venueId.toString())) {
-          // Venue is both close and trending
-          venueMap.get(venueId.toString()).reasons.push('trending');
-          venueMap.get(venueId.toString()).reportCount = reportCount;
+        if (venueMap.has(venueId) || venueKeys.has(venueKey)) {
+          // Venue is both close and trending (or duplicate by name+address)
+          if (venueMap.has(venueId)) {
+            const existing = venueMap.get(venueId);
+            if (!existing.reasons.includes('trending')) {
+              existing.reasons.push('trending');
+            }
+            existing.reportCount = reportCount;
+            // Update venue object to ensure consistent IDs
+            existing.venue = normalizedVenue;
+          }
+          // If it exists by name+address but not by ID, skip it (duplicate)
         } else {
           // Venue is trending but not in top 10 closest
-          venueMap.set(venueId.toString(), {
-            venue,
+          venueKeys.add(venueKey);
+          venueMap.set(venueId, {
+            venue: normalizedVenue,
             reasons: ['trending'],
             distance,
             reportCount,
@@ -182,7 +293,7 @@ router.get(
         }
       });
 
-      // Convert to array and sort by priority
+      // Convert to array - the Map already deduplicated by ID
       const suggestionsArray = Array.from(venueMap.values());
 
       // Sort: prioritize venues that are both close and trending, then by distance/report count
@@ -209,29 +320,45 @@ router.get(
       // Limit to top 15 suggestions
       const topSuggestions = suggestionsArray.slice(0, 15);
 
-      // Get metrics for all suggested venues
+      // Get metrics for all suggested venues - use normalized IDs
       const venueIds = topSuggestions.map((s) => {
-        const id = s.venue._id || s.venue.venueId;
-        return id.toString();
-      });
+        return normalizeVenueId(s.venue);
+      }).filter(Boolean);
       const metricsMap = await getMultipleVenueMetricsConcept(venueIds);
 
       // Attach metrics and format response
+      // All venues in the Map should already have normalized IDs, but ensure consistency
       const formattedSuggestions = topSuggestions.map((suggestion) => {
         const venue = suggestion.venue;
-        const venueId = (venue._id || venue.venueId).toString();
+        const venueId = normalizeVenueId(venue);
+        if (!venueId) return null; // Skip invalid venues
+        
+        // Create venue object with guaranteed consistent ID fields
+        const { _id, venueId: vId, ...venueWithoutIds } = venue;
+        
         return {
-          ...venue,
-          _id: venueId, // Ensure _id is present for frontend compatibility
-          venueId: venueId, // Also include venueId
+          ...venueWithoutIds,
+          _id: venueId, // Always use normalized _id
+          venueId: venueId, // Always use normalized venueId (same as _id)
           metrics: metricsMap[venueId],
           suggestionReasons: suggestion.reasons,
           distance: Math.round(suggestion.distance),
           reportCount: suggestion.reportCount,
         };
+      }).filter(Boolean); // Remove any null entries
+
+      // Final deduplication by ID to ensure no duplicates - normalize all IDs to strings
+      const seenIds = new Set();
+      const deduplicatedSuggestions = formattedSuggestions.filter((suggestion) => {
+        const id = normalizeVenueId(suggestion) || String(suggestion._id || suggestion.venueId || '');
+        if (!id || id === 'undefined' || id === 'null' || seenIds.has(id)) {
+          return false;
+        }
+        seenIds.add(id);
+        return true;
       });
 
-      res.json({ suggestions: formattedSuggestions });
+      res.json({ suggestions: deduplicatedSuggestions });
     } catch (error) {
       console.error('Concept get suggested venues error:', error);
       res.status(500).json({ error: 'Failed to fetch suggested venues' });

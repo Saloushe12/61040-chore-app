@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVenues } from '../hooks/useVenues';
 import { useGeolocation } from '../hooks/useGeolocation';
@@ -38,6 +38,50 @@ const Home = () => {
       await refetch();
     }
   };
+
+  // Deduplicate suggestions - normalize IDs to strings for consistent comparison
+  const uniqueSuggestions = useMemo(() => {
+    if (!suggestions || suggestions.length === 0) return [];
+    const seen = new Set();
+    return suggestions.filter(venue => {
+      const id = String(venue._id || venue.venueId || '');
+      if (!id || id === 'undefined' || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [suggestions]);
+
+  // Get unique suggestion IDs to filter them out from regular venues - normalize to strings
+  const suggestionIds = useMemo(() => {
+    if (!uniqueSuggestions || uniqueSuggestions.length === 0) return new Set();
+    return new Set(
+      uniqueSuggestions
+        .map(venue => String(venue._id || venue.venueId || ''))
+        .filter(id => id && id !== 'undefined')
+    );
+  }, [uniqueSuggestions]);
+
+  // Filter out suggested venues from regular venues list and deduplicate - normalize IDs to strings
+  const filteredVenues = useMemo(() => {
+    if (!venues || venues.length === 0) return [];
+    
+    // First deduplicate by ID
+    const seenIds = new Set();
+    const deduplicated = venues.filter(venue => {
+      const id = String(venue._id || venue.venueId || '').toLowerCase().trim();
+      if (!id || id === 'undefined' || id === 'null' || seenIds.has(id)) {
+        return false;
+      }
+      seenIds.add(id);
+      return true;
+    });
+    
+    // Then filter out suggested venues
+    return deduplicated.filter(venue => {
+      const id = String(venue._id || venue.venueId || '').toLowerCase().trim();
+      return id && id !== 'undefined' && !suggestionIds.has(id);
+    });
+  }, [venues, suggestionIds]);
 
   return (
     <div className="home-container">
@@ -94,7 +138,7 @@ const Home = () => {
               {/* Combined venue list: suggested first, then regular venues */}
               <div className="unified-venue-list">
                 {/* Suggested venues section */}
-                {suggestions && suggestions.length > 0 && (
+                {uniqueSuggestions && uniqueSuggestions.length > 0 && (
                   <div className="suggested-section">
                     <div className="suggestions-header">
                       <h3>✨ Personalized Suggestions</h3>
@@ -103,7 +147,7 @@ const Home = () => {
                       </p>
                     </div>
                     <div className="suggestions-list">
-                      {suggestions.map((venue) => (
+                      {uniqueSuggestions.map((venue) => (
                         <SuggestedVenueCard key={venue._id || venue.venueId} venue={venue} onClick={handleVenueClick} />
                       ))}
                     </div>
@@ -111,15 +155,15 @@ const Home = () => {
                 )}
 
                 {/* Regular venues section */}
-                {venues && venues.length > 0 && (
+                {filteredVenues && filteredVenues.length > 0 && (
                   <div className="regular-venues-section">
-                    {suggestions && suggestions.length > 0 && (
+                    {uniqueSuggestions && uniqueSuggestions.length > 0 && (
                       <div className="venues-section-header">
                         <h3>All Venues</h3>
                       </div>
                     )}
                     <VenueList
-                      venues={venues}
+                      venues={filteredVenues}
                       onVenueClick={handleVenueClick}
                       loading={loading}
                       error={error}
@@ -141,7 +185,7 @@ const Home = () => {
                 )}
 
                 {/* Empty state */}
-                {(!suggestions || suggestions.length === 0) && (!venues || venues.length === 0) && !suggestionsLoading && !loading && (
+                {(!uniqueSuggestions || uniqueSuggestions.length === 0) && (!filteredVenues || filteredVenues.length === 0) && !suggestionsLoading && !loading && (
                   <div className="venue-list-message">No venues found nearby</div>
                 )}
               </div>
