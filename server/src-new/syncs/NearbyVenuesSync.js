@@ -159,8 +159,10 @@ function buildNearbyVenuesSync({ waitReportConcept, vibeReportConcept }) {
         vibeReportConcept,
       });
 
+      const venueIdString = venue._id.toHexString();
       resultVenues.push({
-        venueId: venue._id.toHexString(),
+        _id: venueIdString, // Frontend expects _id
+        venueId: venueIdString, // Also include venueId for consistency
         name: venue.name,
         address: venue.address,
         location: venue.location,

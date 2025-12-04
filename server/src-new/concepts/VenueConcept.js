@@ -155,8 +155,23 @@ class VenueConcept {
    * Internal query helper returning an array.
    */
   async _getVenueDetails({ venueId }) {
+    if (!venueId || venueId === 'undefined' || typeof venueId !== 'string') {
+      return [];
+    }
+
+    // Validate ObjectId format
+    if (!/^[0-9a-fA-F]{24}$/.test(venueId)) {
+      return [];
+    }
+
     const venues = await this._venues();
-    const v = await venues.findOne({ _id: new ObjectId(venueId) });
+    let v;
+    try {
+      v = await venues.findOne({ _id: new ObjectId(venueId) });
+    } catch (error) {
+      console.error('Invalid ObjectId format:', venueId, error);
+      return [];
+    }
 
     if (!v) return [];
 

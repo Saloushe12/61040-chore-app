@@ -63,6 +63,8 @@ router.post(
       const { email, password, displayName, role, homeArea } = req.body;
 
       // Use concept to register
+      console.log('Registration attempt:', { email, displayName, role });
+      
       const result = await userConcept.register({
         email,
         password,
@@ -71,10 +73,12 @@ router.post(
       });
 
       if (result.error) {
+        console.log('Registration failed:', result.error);
         return res.status(400).json({ error: result.error });
       }
 
       const userId = result.userId;
+      console.log('User registered successfully, userId:', userId);
 
       // If homeArea provided, update profile
       if (homeArea) {
@@ -82,8 +86,18 @@ router.post(
       }
 
       const userPayload = await getUserPayload(userId);
+      
+      if (!userPayload) {
+        console.error('Failed to get user payload after registration, userId:', userId);
+        return res.status(500).json({ error: 'Registration succeeded but failed to retrieve user data' });
+      }
 
       // Generate JWT
+      if (!process.env.JWT_SECRET) {
+        console.error('JWT_SECRET is not set in environment variables');
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
+
       const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
         expiresIn: '7d',
       });
@@ -94,7 +108,8 @@ router.post(
       });
     } catch (error) {
       console.error('Concept registration error:', error);
-      res.status(500).json({ error: 'Registration failed' });
+      console.error('Error stack:', error.stack);
+      res.status(500).json({ error: error.message || 'Registration failed' });
     }
   }
 );
@@ -111,15 +126,26 @@ router.post(
     try {
       const { email, password } = req.body;
 
+      console.log('Login attempt:', { email });
+      
       const result = await userConcept.authenticate({ email, password });
       if (result.error) {
+        console.log('Authentication failed:', result.error);
         return res.status(401).json({ error: result.error });
       }
 
       const userId = result.userId;
+      console.log('Authentication successful, userId:', userId);
+      
       const userPayload = await getUserPayload(userId);
       if (!userPayload) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+        console.error('Failed to get user payload after authentication, userId:', userId);
+        return res.status(500).json({ error: 'Authentication succeeded but failed to retrieve user data' });
+      }
+
+      if (!process.env.JWT_SECRET) {
+        console.error('JWT_SECRET is not set in environment variables');
+        return res.status(500).json({ error: 'Server configuration error' });
       }
 
       const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
@@ -132,7 +158,8 @@ router.post(
       });
     } catch (error) {
       console.error('Concept login error:', error);
-      res.status(500).json({ error: 'Login failed' });
+      console.error('Error stack:', error.stack);
+      res.status(500).json({ error: error.message || 'Login failed' });
     }
   }
 );

@@ -218,9 +218,12 @@ router.get(
 
       // Attach metrics and format response
       const formattedSuggestions = topSuggestions.map((suggestion) => {
-        const venueId = (suggestion.venue._id || suggestion.venue.venueId).toString();
+        const venue = suggestion.venue;
+        const venueId = (venue._id || venue.venueId).toString();
         return {
-          ...suggestion.venue,
+          ...venue,
+          _id: venueId, // Ensure _id is present for frontend compatibility
+          venueId: venueId, // Also include venueId
           metrics: metricsMap[venueId],
           suggestionReasons: suggestion.reasons,
           distance: Math.round(suggestion.distance),
@@ -239,6 +242,18 @@ router.get(
 // Get venue by ID with detail sync
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
+    const venueId = req.params.id;
+
+    // Validate venue ID
+    if (!venueId || venueId === 'undefined' || venueId.trim() === '') {
+      return res.status(400).json({ error: 'Invalid venue ID' });
+    }
+
+    // Validate ObjectId format (24 character hex string)
+    if (!/^[0-9a-fA-F]{24}$/.test(venueId)) {
+      return res.status(400).json({ error: 'Invalid venue ID format' });
+    }
+
     const { latitude, longitude } = req.query;
     const userLocation =
       latitude && longitude
@@ -249,7 +264,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
         : undefined;
 
     const result = await venueDetailSync({
-      venueId: req.params.id,
+      venueId,
       userLocation,
     });
 
@@ -260,6 +275,11 @@ router.get('/:id', optionalAuth, async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Concept get venue error:', error);
+    console.error('Error details:', {
+      venueId: req.params.id,
+      errorMessage: error.message,
+      errorStack: error.stack,
+    });
     res.status(500).json({ error: 'Failed to fetch venue' });
   }
 });
