@@ -55,7 +55,7 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
         // Show location found message briefly
         if (infoWin) {
           infoWin.setPosition(pos);
-          infoWin.setContent('📍 Location found!');
+          infoWin.setContent('<div style="padding: 12px; background-color: #1a1d3a; color: #e2e8f0; border-radius: 8px;">📍 Location found!</div>');
           infoWin.open(googleMap);
           // Close info window after 3 seconds
           setTimeout(() => {
@@ -104,7 +104,7 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
           if (infoWin && googleMap) {
             infoWin.setPosition(googleMap.getCenter());
             infoWin.setContent(
-              '<div style="padding: 8px;"><p style="margin: 0 0 8px 0; font-weight: 500;">Location access denied</p><p style="margin: 0; font-size: 14px;">Please enable location permissions in your browser settings to see your location on the map.</p></div>'
+              '<div style="padding: 12px; background-color: #1a1d3a; color: #e2e8f0; border-radius: 8px;"><p style="margin: 0 0 8px 0; font-weight: 500; color: #e2e8f0;">Location access denied</p><p style="margin: 0; font-size: 14px; color: #9ca3af;">Please enable location permissions in your browser settings to see your location on the map.</p></div>'
             );
             infoWin.open(googleMap);
           }
@@ -112,14 +112,14 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
           setShowLocationPrompt(true);
           if (infoWin && googleMap) {
             infoWin.setPosition(googleMap.getCenter());
-            infoWin.setContent('Location information is unavailable.');
+            infoWin.setContent('<div style="padding: 12px; background-color: #1a1d3a; color: #e2e8f0; border-radius: 8px;">Location information is unavailable.</div>');
             infoWin.open(googleMap);
           }
         } else if (error.code === error.TIMEOUT) {
           setShowLocationPrompt(true);
           if (infoWin && googleMap) {
             infoWin.setPosition(googleMap.getCenter());
-            infoWin.setContent('Location request timed out. Please try again.');
+            infoWin.setContent('<div style="padding: 12px; background-color: #1a1d3a; color: #e2e8f0; border-radius: 8px;">Location request timed out. Please try again.</div>');
             infoWin.open(googleMap);
           }
         }
@@ -248,6 +248,43 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
       const googleMap = new window.google.maps.Map(mapRef.current, {
         center: center,
         zoom: userLocation ? 14 : 6,
+        styles: [
+          {
+            featureType: 'all',
+            elementType: 'geometry',
+            stylers: [{ color: '#1a1d3a' }]
+          },
+          {
+            featureType: 'all',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#e2e8f0' }]
+          },
+          {
+            featureType: 'all',
+            elementType: 'labels.text.stroke',
+            stylers: [{ color: '#0a0e27' }]
+          },
+          {
+            featureType: 'water',
+            elementType: 'geometry',
+            stylers: [{ color: '#0a0e27' }]
+          },
+          {
+            featureType: 'road',
+            elementType: 'geometry',
+            stylers: [{ color: '#252945' }]
+          },
+          {
+            featureType: 'poi',
+            elementType: 'geometry',
+            stylers: [{ color: '#1a1d3a' }]
+          },
+          {
+            featureType: 'poi',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#9ca3af' }]
+          }
+        ]
       });
 
       const infoWin = new window.google.maps.InfoWindow();
@@ -290,9 +327,11 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
     const handleLocationError = (browserHasGeolocation, infoWindow, pos) => {
       infoWindow.setPosition(pos);
       infoWindow.setContent(
-        browserHasGeolocation
-          ? 'Error: The Geolocation service failed.'
-          : 'Error: Your browser doesn\'t support geolocation.'
+        `<div style="padding: 12px; background-color: #1a1d3a; color: #e2e8f0; border-radius: 8px;">${
+          browserHasGeolocation
+            ? 'Error: The Geolocation service failed.'
+            : 'Error: Your browser doesn\'t support geolocation.'
+        }</div>`
       );
       infoWindow.open(googleMap);
     };
@@ -368,22 +407,37 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
     const newMarkers = venues
       .filter((venue) => {
         // Filter out venues with invalid coordinates
-        return (
-          venue.location &&
-          venue.location.coordinates &&
-          Array.isArray(venue.location.coordinates) &&
-          venue.location.coordinates.length >= 2 &&
-          typeof venue.location.coordinates[0] === 'number' &&
-          typeof venue.location.coordinates[1] === 'number' &&
-          !isNaN(venue.location.coordinates[0]) &&
-          !isNaN(venue.location.coordinates[1])
-        );
+        // Support both { lat, lon } and { coordinates: [lon, lat] } formats
+        if (venue.location?.lat && venue.location?.lon) {
+          return (
+            typeof venue.location.lat === 'number' &&
+            typeof venue.location.lon === 'number' &&
+            !isNaN(venue.location.lat) &&
+            !isNaN(venue.location.lon)
+          );
+        } else if (venue.location?.coordinates) {
+          return (
+            Array.isArray(venue.location.coordinates) &&
+            venue.location.coordinates.length >= 2 &&
+            typeof venue.location.coordinates[0] === 'number' &&
+            typeof venue.location.coordinates[1] === 'number' &&
+            !isNaN(venue.location.coordinates[0]) &&
+            !isNaN(venue.location.coordinates[1])
+          );
+        }
+        return false;
       })
       .map((venue) => {
-        const position = {
-          lat: venue.location.coordinates[1],
-          lng: venue.location.coordinates[0],
-        };
+        // Support both { lat, lon } and { coordinates: [lon, lat] } formats
+        const position = venue.location?.lat && venue.location?.lon
+          ? {
+              lat: venue.location.lat,
+              lng: venue.location.lon,
+            }
+          : {
+              lat: venue.location.coordinates[1],
+              lng: venue.location.coordinates[0],
+            };
 
         // Add to bounds
         bounds.extend(position);
@@ -405,19 +459,19 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
           },
         });
 
-        // Create info window content
+        // Create info window content with dark theme
         const infoContent = `
-          <div style="padding: 8px;">
-            <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">${venue.name}</h3>
-            ${venue.address ? `<p style="margin: 4px 0; color: #6b7280; font-size: 13px;">📍 ${venue.address}</p>` : ''}
+          <div style="padding: 12px; background-color: #1a1d3a; color: #e2e8f0; border-radius: 8px; min-width: 200px;">
+            <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #e2e8f0;">${venue.name}</h3>
+            ${venue.address ? `<p style="margin: 4px 0; color: #9ca3af; font-size: 13px;">📍 ${venue.address}</p>` : ''}
             ${venue.metrics?.avgWait !== null && venue.metrics?.avgWait !== undefined
-              ? `<p style="margin: 4px 0;">⏱ ${Math.round(venue.metrics.avgWait)} min wait</p>`
+              ? `<p style="margin: 4px 0; color: #e2e8f0;">⏱ ${Math.round(venue.metrics.avgWait)} min wait</p>`
               : ''}
             ${venue.metrics?.crowdDensity
-              ? `<p style="margin: 4px 0;">👥 ${venue.metrics.crowdDensity} crowd</p>`
+              ? `<p style="margin: 4px 0; color: #e2e8f0;">👥 ${venue.metrics.crowdDensity} crowd</p>`
               : ''}
             ${venue.currentStatus
-              ? `<p style="margin: 4px 0; color: ${venue.currentStatus === 'open' ? '#10b981' : '#ef4444'};">
+              ? `<p style="margin: 4px 0; color: ${venue.currentStatus === 'open' ? '#10b981' : venue.currentStatus === 'closed' ? '#ef4444' : '#fbbf24'};">
                   ${venue.currentStatus === 'open' ? '🟢 Open' : venue.currentStatus === 'closed' ? '🔴 Closed' : '🟡 Door Hold'}
                 </p>`
               : ''}
@@ -485,6 +539,7 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
           justifyContent: 'center', 
           height: '100%',
           color: '#ef4444',
+          backgroundColor: '#1a1d3a',
           padding: '20px',
           textAlign: 'center'
         }}>
@@ -507,7 +562,8 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
           alignItems: 'center', 
           justifyContent: 'center', 
           height: '100%',
-          color: '#9ca3af'
+          color: '#9ca3af',
+          backgroundColor: '#1a1d3a'
         }}>
           <div>
             <p>Loading Google Maps...</p>
@@ -555,10 +611,12 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 1000,
-            backgroundColor: '#fff',
+            backgroundColor: '#1a1d3a',
+            color: '#e2e8f0',
             padding: '12px 20px',
             borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+            border: '1px solid #252945',
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
@@ -571,7 +629,7 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
             onClick={handleEnableLocation}
             style={{
               padding: '6px 12px',
-              backgroundColor: '#3b82f6',
+              backgroundColor: '#6366f1',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
@@ -580,8 +638,8 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
               fontWeight: '500',
               transition: 'background-color 0.2s'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#4f46e5'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#6366f1'}
           >
             Enable Location
           </button>
@@ -590,13 +648,15 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
             style={{
               padding: '6px 12px',
               backgroundColor: 'transparent',
-              color: '#6b7280',
+              color: '#9ca3af',
               border: 'none',
               cursor: 'pointer',
               fontSize: '18px',
               lineHeight: '1'
             }}
             title="Dismiss"
+            onMouseOver={(e) => e.target.style.color = '#e2e8f0'}
+            onMouseOut={(e) => e.target.style.color = '#9ca3af'}
           >
             ×
           </button>

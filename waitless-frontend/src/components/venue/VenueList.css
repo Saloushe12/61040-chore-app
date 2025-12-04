@@ -1,6 +1,27 @@
 .venue-list {
   position: relative;
   z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1200px) {
+  .venue-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .venue-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .venue-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 .venue-list::-webkit-scrollbar {

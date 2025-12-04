@@ -4,13 +4,13 @@ import { useVenues } from '../hooks/useVenues';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useSuggestedVenues } from '../hooks/useSuggestedVenues';
 import VenueList from '../components/venue/VenueList';
-import SuggestedVenueList from '../components/venue/SuggestedVenueList';
+import SuggestedVenueCard from '../components/venue/SuggestedVenueCard';
 import GoogleMap from '../components/map/GoogleMap';
 import AddVenueForm from '../components/venue/AddVenueForm';
 import './Home.css';
 
 const Home = () => {
-  const [activeTab, setActiveTab] = useState('suggested'); // 'suggested', 'venues', or 'map'
+  const [activeTab, setActiveTab] = useState('venues'); // 'venues' or 'map'
   const [showAddForm, setShowAddForm] = useState(false);
   const { venues, loading, error, refetch, addVenue } = useVenues();
   const { suggestions, loading: suggestionsLoading, error: suggestionsError, refetch: refetchSuggestions } = useSuggestedVenues();
@@ -50,16 +50,10 @@ const Home = () => {
         <div className="tabs-container">
           <div className="tabs">
             <button
-              className={`tab ${activeTab === 'suggested' ? 'active' : ''}`}
-              onClick={() => setActiveTab('suggested')}
-            >
-              Suggested
-            </button>
-            <button
               className={`tab ${activeTab === 'venues' ? 'active' : ''}`}
               onClick={() => setActiveTab('venues')}
             >
-              Venue List
+              Venues
             </button>
             <button
               className={`tab ${activeTab === 'map' ? 'active' : ''}`}
@@ -77,21 +71,9 @@ const Home = () => {
         )}
 
         <div className="content-area">
-          {activeTab === 'suggested' && (
-            <div className="suggested-tab-content">
-              <SuggestedVenueList
-                suggestions={suggestions}
-                onVenueClick={handleVenueClick}
-                loading={suggestionsLoading}
-                error={suggestionsError}
-              />
-            </div>
-          )}
-
           {activeTab === 'venues' && (
             <div className="venues-tab-content">
               <div className="venues-header">
-                <h2>Venues</h2>
                 <button
                   className="add-venue-btn"
                   onClick={() => setShowAddForm(!showAddForm)}
@@ -109,12 +91,60 @@ const Home = () => {
                 </div>
               )}
 
-              <VenueList
-                venues={venues}
-                onVenueClick={handleVenueClick}
-                loading={loading}
-                error={error}
-              />
+              {/* Combined venue list: suggested first, then regular venues */}
+              <div className="unified-venue-list">
+                {/* Suggested venues section */}
+                {suggestions && suggestions.length > 0 && (
+                  <div className="suggested-section">
+                    <div className="suggestions-header">
+                      <h3>✨ Personalized Suggestions</h3>
+                      <p className="suggestions-subtitle">
+                        Based on your location and trending activity
+                      </p>
+                    </div>
+                    <div className="suggestions-list">
+                      {suggestions.map((venue) => (
+                        <SuggestedVenueCard key={venue._id || venue.venueId} venue={venue} onClick={handleVenueClick} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Regular venues section */}
+                {venues && venues.length > 0 && (
+                  <div className="regular-venues-section">
+                    {suggestions && suggestions.length > 0 && (
+                      <div className="venues-section-header">
+                        <h3>All Venues</h3>
+                      </div>
+                    )}
+                    <VenueList
+                      venues={venues}
+                      onVenueClick={handleVenueClick}
+                      loading={loading}
+                      error={error}
+                    />
+                  </div>
+                )}
+
+                {/* Loading states */}
+                {((suggestionsLoading && (!suggestions || suggestions.length === 0)) || (loading && (!venues || venues.length === 0))) && (
+                  <div className="venue-list-message">Loading venues...</div>
+                )}
+
+                {/* Error states */}
+                {suggestionsError && (!suggestions || suggestions.length === 0) && (
+                  <div className="venue-list-error">Error loading suggestions: {suggestionsError}</div>
+                )}
+                {error && (!venues || venues.length === 0) && (
+                  <div className="venue-list-error">Error: {error}</div>
+                )}
+
+                {/* Empty state */}
+                {(!suggestions || suggestions.length === 0) && (!venues || venues.length === 0) && !suggestionsLoading && !loading && (
+                  <div className="venue-list-message">No venues found nearby</div>
+                )}
+              </div>
             </div>
           )}
 
