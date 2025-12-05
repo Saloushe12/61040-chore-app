@@ -260,6 +260,7 @@ All located in Cambridge, MA area.
 ## Resources
 
 - [Implementation Plan](./PLAN.md)
+- [Development Plan](./waitless-backend/developmentplan.md)
 - [Project Framing](./waitless-backend/projectframing.md)
 - [Concept Design](./waitless-backend/conceptdesign.md)
 - [Design Summary](./waitless-backend/designsummary.md)
