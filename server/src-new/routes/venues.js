@@ -18,6 +18,9 @@ const {
 const {
   buildPeakForecastSync,
 } = require('../syncs/PeakForecastSync');
+const {
+  buildVenueDashboardSync,
+} = require('../syncs/VenueDashboardSync');
 const { getMultipleVenueMetricsConcept } = require('../services/notifications');
 const { calculateDistance } = require('../services/geofence');
 
@@ -43,6 +46,12 @@ const venueDetailSync = buildVenueDetailSync({
   snapshotConcept,
 });
 const peakForecastSync = buildPeakForecastSync();
+const venueDashboardSync = buildVenueDashboardSync({
+  venueConcept,
+  venueEventConcept,
+  waitReportConcept,
+  vibeReportConcept,
+});
 
 // Get nearby venues (concept/sync-based)
 router.get(
@@ -513,6 +522,37 @@ router.patch(
   }
 );
 
+// Claim venue (operator only, concept-based)
+router.patch(
+  '/:id/claim',
+  [
+    auth,
+    requireVenueOperator,
+    validate,
+  ],
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const operatorUserId = req.userId;
+
+      const result = await venueConcept.claimVenue({
+        venueId: id,
+        operatorUserId,
+      });
+
+      if (result.error) {
+        return res.status(404).json({ error: result.error });
+      }
+
+      const [venue] = await venueConcept._getVenueDetails({ venueId: id });
+      res.json({ venue });
+    } catch (error) {
+      console.error('Concept claim venue error:', error);
+      res.status(500).json({ error: 'Failed to claim venue' });
+    }
+  }
+);
+
 // Update venue status (operator only, concept-based)
 router.patch(
   '/:id/status',
@@ -571,6 +611,22 @@ router.get('/:id/forecast', optionalAuth, async (req, res) => {
     res.status(500).json({ error: 'Failed to get forecast' });
   }
 });
+
+// Get operator dashboard (operator only)
+router.get(
+  '/operator/dashboard',
+  [auth, requireVenueOperator, validate],
+  async (req, res) => {
+    try {
+      const operatorUserId = req.userId;
+      const result = await venueDashboardSync({ operatorUserId });
+      res.json(result);
+    } catch (error) {
+      console.error('Concept get dashboard error:', error);
+      res.status(500).json({ error: 'Failed to get dashboard' });
+    }
+  }
+);
 
 module.exports = router;
 

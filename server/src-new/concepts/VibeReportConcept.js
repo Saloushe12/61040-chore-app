@@ -58,6 +58,7 @@ class VibeReportConcept {
     musicTags,
     geofenceVerified,
     location,
+    displayName,
   }) {
     const reports = await this._reports();
     const now = new Date();
@@ -66,7 +67,6 @@ class VibeReportConcept {
     const doc = {
       _id: new ObjectId(reportId),
       venueId: new ObjectId(venueId),
-      userId: new ObjectId(userId),
       crowdDensity,
       noiseLevel,
       energyLevel,
@@ -74,6 +74,18 @@ class VibeReportConcept {
       createdAt: now,
       geofenceVerified: !!geofenceVerified,
     };
+
+    // Support anonymous reporting: userId is optional
+    // If userId is provided and is a valid ObjectId string, use it
+    // Otherwise, store as null for anonymous reports
+    if (userId && /^[0-9a-fA-F]{24}$/.test(userId)) {
+      doc.userId = new ObjectId(userId);
+    } else {
+      doc.userId = null; // Anonymous report
+      if (displayName) {
+        doc.displayName = displayName; // Store pseudonym for anonymous reports
+      }
+    }
 
     if (location) {
       doc.location = {

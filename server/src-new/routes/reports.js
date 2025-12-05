@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { auth } = require('../middleware/auth');
+const { auth, requireVenueOperator } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 const { verifyGeofence } = require('../services/geofence');
 const { triggerAlertsForVenue } = require('../services/notifications');
@@ -23,10 +23,10 @@ const contributionHistorySync = buildUserContributionHistorySync({
 });
 
 // Submit wait report (concept-based storage, same flow)
+// Supports anonymous reporting: userId is optional if user provides displayName
 router.post(
   '/wait',
   [
-    auth,
     body('venueId').isMongoId(),
     body('reportedWaitMinutes')
       .toInt()
@@ -40,11 +40,21 @@ router.post(
       .toFloat()
       .isFloat({ min: -180, max: 180 })
       .withMessage('Longitude must be a number between -180 and 180'),
+    body('displayName').optional().trim(),
     validate,
   ],
   async (req, res) => {
     try {
-      const { venueId, reportedWaitMinutes, latitude, longitude } = req.body;
+      const { venueId, reportedWaitMinutes, latitude, longitude, displayName } = req.body;
+      
+      // Support anonymous reporting: userId is optional
+      // If authenticated, use userId; otherwise require displayName for pseudonym
+      const userId = req.userId ? req.userId.toString() : null;
+      if (!userId && !displayName) {
+        return res.status(400).json({ 
+          error: 'Either authentication or displayName is required for anonymous reporting' 
+        });
+      }
 
       // Check if venue exists in concept storage
       const [venue] = await venueConcept._getVenueDetails({ venueId });
@@ -53,18 +63,21 @@ router.post(
       }
 
       // Spam prevention: check for recent report from this user (3 hours)
-      const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
-      const hasRecentReport = await waitReportConcept._hasRecentReportForVenue({
-        userId: req.userId.toString(),
-        venueId,
-        since: threeHoursAgo,
-      });
-
-      if (hasRecentReport) {
-        return res.status(429).json({
-          error:
-            'You already submitted a report for this venue recently. Please wait before submitting another.',
+      // Only check if user is authenticated
+      if (userId) {
+        const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+        const hasRecentReport = await waitReportConcept._hasRecentReportForVenue({
+          userId,
+          venueId,
+          since: threeHoursAgo,
         });
+
+        if (hasRecentReport) {
+          return res.status(429).json({
+            error:
+              'You already submitted a report for this venue recently. Please wait before submitting another.',
+          });
+        }
       }
 
       // Verify geofence using existing service
@@ -76,11 +89,12 @@ router.post(
       const geofenceResult = verifyGeofence(userLocation, venueLocation);
 
       const { reportId } = await waitReportConcept.submitWaitReport({
-        userId: req.userId.toString(),
+        userId: userId || null, // null for anonymous reports
         venueId,
         reportedWaitMinutes,
         geofenceVerified: geofenceResult.verified,
         location: { lat: latitude, lon: longitude },
+        displayName: displayName || undefined,
       });
 
       // Trigger alerts if geofence verified
@@ -111,14 +125,70 @@ router.post(
   }
 );
 
+// Submit venue wait override (operator only)
+router.post(
+  '/wait/override',
+  [
+    auth,
+    requireVenueOperator,
+    body('venueId').isMongoId(),
+    body('waitMinutes')
+      .toInt()
+      .isInt({ min: 0, max: 300 })
+      .withMessage('Wait time must be an integer between 0 and 300 minutes'),
+    validate,
+  ],
+  async (req, res) => {
+    try {
+      const { venueId, waitMinutes } = req.body;
+      const operatorUserId = req.userId;
+
+      // Verify operator owns this venue
+      const [venue] = await venueConcept._getVenueDetails({ venueId });
+      if (!venue) {
+        return res.status(404).json({ error: 'Venue not found' });
+      }
+      if (venue.operatorUserId !== operatorUserId) {
+        return res.status(403).json({ error: 'You do not have permission to override wait times for this venue' });
+      }
+
+      const { reportId } = await waitReportConcept.submitVenueWaitOverride({
+        operatorUserId,
+        venueId,
+        waitMinutes,
+      });
+
+      // Broadcast update
+      const io = req.app.get('io');
+      if (io) {
+        await triggerAlertsForVenue(venueId, io);
+        io.to(`venue-${venueId}`).emit('venue-update', {
+          venueId,
+          type: 'wait-override',
+          reportId,
+        });
+      }
+
+      res.status(201).json({
+        reportId,
+        message: 'Wait time override submitted successfully',
+      });
+    } catch (error) {
+      console.error('Concept submit wait override error:', error);
+      res.status(500).json({ error: 'Failed to submit wait override' });
+    }
+  }
+);
+
 // Submit vibe report (concept-based storage)
+// Supports anonymous reporting: userId is optional if user provides displayName
 router.post(
   '/vibe',
   [
-    auth,
     body('venueId')
       .isMongoId()
       .withMessage('Invalid venue ID'),
+    body('displayName').optional().trim(),
     body('crowdDensity')
       .isIn(['low', 'medium', 'high'])
       .withMessage('Crowd density must be one of: low, medium, high'),
@@ -169,7 +239,17 @@ router.post(
         musicTags,
         latitude,
         longitude,
+        displayName,
       } = req.body;
+      
+      // Support anonymous reporting: userId is optional
+      // If authenticated, use userId; otherwise require displayName for pseudonym
+      const userId = req.userId ? req.userId.toString() : null;
+      if (!userId && !displayName) {
+        return res.status(400).json({ 
+          error: 'Either authentication or displayName is required for anonymous reporting' 
+        });
+      }
 
       const [venue] = await venueConcept._getVenueDetails({ venueId });
       if (!venue) {
@@ -183,7 +263,7 @@ router.post(
       const geofenceResult = verifyGeofence(userLocation, venueLocation);
 
       const { reportId } = await vibeReportConcept.submitVibeReport({
-        userId: req.userId.toString(),
+        userId: userId || null, // null for anonymous reports
         venueId,
         crowdDensity,
         noiseLevel,
@@ -191,6 +271,7 @@ router.post(
         musicTags,
         geofenceVerified: geofenceResult.verified,
         location: { lat: latitude, lon: longitude },
+        displayName: displayName || undefined,
       });
 
       if (geofenceResult.verified) {
