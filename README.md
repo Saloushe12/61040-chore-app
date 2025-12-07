@@ -95,8 +95,11 @@ Backend will run on `http://localhost:5000`
 
 ### Seed Database (Optional but Recommended)
 
+**Basic Seed (Cambridge venues):**
 ```bash
 cd server
+npm run seed:old
+# or
 node src/utils/seed.js
 ```
 
@@ -105,6 +108,24 @@ This will:
 - Create a test user account:
   - Email: `test@example.com`
   - Password: `password123`
+
+**Comprehensive Boston Seed (Recommended for deployment):**
+```bash
+cd server
+npm run seed:boston
+# or
+node src/utils/seedBoston.js
+```
+
+This will:
+- Create **25+ Boston venues** across multiple neighborhoods (Downtown, Back Bay, Fenway, Seaport, South End, Allston, Cambridge)
+- Create **6 test user accounts** for realistic data distribution
+- Generate **800-1200+ wait reports** spread over the past 7 days with realistic time patterns
+- Generate **600-900+ vibe reports** with varied crowd density, noise, energy, and music tags
+- Reports include realistic patterns (more on weekends, higher wait times during peak hours, venue-specific music)
+- All reports are geofence-verified and properly geolocated
+
+This comprehensive seed gives a vivid impression of real-world usage with rich, realistic data.
 
 ### Start Frontend
 
