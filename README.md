@@ -18,7 +18,7 @@ WaitLess solves two interconnected problems:
 
 ### Backend
 - Node.js + Express.js
-- MongoDB (with Mongoose)
+- MongoDB (raw driver with concept-based architecture)
 - Socket.io (real-time updates)
 - JWT authentication
 - Geospatial queries & geofence verification
@@ -95,37 +95,17 @@ Backend will run on `http://localhost:5000`
 
 ### Seed Database (Optional but Recommended)
 
-**Basic Seed (Cambridge venues):**
+**Boston Venues Seed:**
 ```bash
 cd server
-npm run seed:old
+npm run seed
 # or
-node src/utils/seed.js
-```
-
-This will:
-- Create 5 sample venues in Cambridge, MA
-- Create a test user account:
-  - Email: `test@example.com`
-  - Password: `password123`
-
-**Comprehensive Boston Seed (Recommended for deployment):**
-```bash
-cd server
-npm run seed:boston
-# or
-node src/utils/seedBoston.js
+node src-new/utils/seed.js
 ```
 
 This will:
 - Create **25+ Boston venues** across multiple neighborhoods (Downtown, Back Bay, Fenway, Seaport, South End, Allston, Cambridge)
-- Create **6 test user accounts** for realistic data distribution
-- Generate **800-1200+ wait reports** spread over the past 7 days with realistic time patterns
-- Generate **600-900+ vibe reports** with varied crowd density, noise, energy, and music tags
-- Reports include realistic patterns (more on weekends, higher wait times during peak hours, venue-specific music)
-- All reports are geofence-verified and properly geolocated
-
-This comprehensive seed gives a vivid impression of real-world usage with rich, realistic data.
+- All venues include location data, hours, tags, and static attributes
 
 ### Start Frontend
 
@@ -225,19 +205,7 @@ Historical data for forecasting peak times
 
 ## Testing
 
-### Test User Credentials
-After running the seed script:
-- Email: `test@example.com`
-- Password: `password123`
-
-### Sample Venues
-- The Blue Note Jazz Club
-- Grendel's Den
-- The Middle East
-- Phoenix Landing
-- Miracle of Science
-
-All located in Cambridge, MA area.
+After running the seed script, you'll have 25+ Boston venues available for testing. You can register a new account or use any test credentials you create.
 
 ## Development Workflow
 
@@ -247,7 +215,7 @@ All located in Cambridge, MA area.
 4. Navigate to `http://localhost:3000`
 5. Login or register
 6. Allow location access when prompted
-7. Explore nearby venues (you may need to be in Cambridge, MA area for seed data)
+7. Explore nearby venues (seed data includes Boston area venues)
 
 ## Troubleshooting
 
@@ -256,7 +224,7 @@ All located in Cambridge, MA area.
 - Must use HTTPS in production (HTTP works for localhost)
 
 ### No Venues Showing
-- Check that you're near Cambridge, MA (or adjust seed data coordinates)
+- Run the seed script to populate venues: `cd server && npm run seed`
 - Verify MongoDB connection
 - Check browser console for errors
 

@@ -60,35 +60,44 @@ Jonathan Zhao, Dylan Yu, Stephen Lee, Anna Kaganov
 #### Backend (`/server`)
 ```
 server/
-├── src/
-│   ├── models/           # MongoDB schemas
-│   │   ├── User.js
-│   │   ├── Venue.js
-│   │   ├── VenueEvent.js
-│   │   ├── WaitReport.js
-│   │   ├── VibeReport.js
-│   │   ├── AlertSubscription.js
-│   │   └── VenueStatsSnapshot.js
+├── src-new/
+│   ├── concepts/         # Concept-based business logic
+│   │   ├── UserConcept.js
+│   │   ├── VenueConcept.js
+│   │   ├── VenueEventConcept.js
+│   │   ├── WaitReportConcept.js
+│   │   ├── VibeReportConcept.js
+│   │   ├── AlertSubscriptionConcept.js
+│   │   └── VenueStatsSnapshotConcept.js
+│   ├── syncs/            # Coordination layer
+│   │   ├── NearbyVenuesSync.js
+│   │   ├── VenueDetailSync.js
+│   │   ├── EventFilterSync.js
+│   │   ├── HeatmapSync.js
+│   │   ├── UserAlertsSync.js
+│   │   ├── PeakForecastSync.js
+│   │   ├── VenueDashboardSync.js
+│   │   └── UserContributionHistorySync.js
 │   ├── routes/           # API route handlers
 │   │   ├── auth.js
-│   │   ├── users.js
 │   │   ├── venues.js
 │   │   ├── events.js
 │   │   ├── reports.js
 │   │   ├── alerts.js
-│   │   └── analytics.js
+│   │   └── heatmap.js
 │   ├── middleware/       # Express middleware
 │   │   ├── auth.js
-│   │   ├── geofence.js
 │   │   └── validation.js
 │   ├── services/         # Business logic
-│   │   ├── aggregation.js
 │   │   ├── geofence.js
 │   │   ├── forecasting.js
 │   │   └── notifications.js
+│   ├── jobs/             # Background jobs
+│   │   └── snapshotRecording.js
 │   ├── utils/            # Helpers
-│   │   ├── constants.js
-│   │   └── validators.js
+│   │   ├── database.js
+│   │   ├── seed.js
+│   │   └── types.js
 │   ├── config/           # Configuration
 │   │   └── db.js
 │   └── server.js         # Entry point
@@ -1251,7 +1260,7 @@ REACT_APP_GOOGLE_MAPS_API_KEY=your_api_key_here
 2. Connect GitHub repository
 3. Set environment variables
 4. Configure build command: `npm install`
-5. Configure start command: `node src/server.js`
+5. Configure start command: `node src-new/server.js`
 6. Deploy and verify
 
 ### Frontend Deployment (Netlify/Vercel)
