@@ -32,16 +32,34 @@ const VibeReportForm = ({ venue, onSubmit, onCancel }) => {
       return;
     }
 
+    // Validate required fields
+    if (!crowdDensity || !noiseLevel || !energyLevel) {
+      setError('Please select all required fields (crowd density, noise level, energy level)');
+      return;
+    }
+
+    // Ensure musicTags is an array
+    const tagsArray = Array.isArray(musicTags) ? musicTags : [];
+
     setSubmitting(true);
 
     try {
       setError('');
       setWarning('');
-      const result = await reportsService.submitVibeReport(venue._id, {
+      console.log('Submitting vibe report:', {
+        venueId: venue._id || venue.venueId,
         crowdDensity,
         noiseLevel,
         energyLevel,
-        musicTags,
+        musicTags: tagsArray,
+        location
+      });
+      
+      const result = await reportsService.submitVibeReport(venue._id || venue.venueId, {
+        crowdDensity,
+        noiseLevel,
+        energyLevel,
+        musicTags: tagsArray,
         location
       });
 

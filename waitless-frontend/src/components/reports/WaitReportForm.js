@@ -21,13 +21,20 @@ const WaitReportForm = ({ venue, onSubmit, onCancel }) => {
       return;
     }
 
+    // Validate wait minutes
+    const waitMinutesNum = parseInt(waitMinutes, 10);
+    if (isNaN(waitMinutesNum) || waitMinutesNum < 0 || waitMinutesNum > 300) {
+      setError('Wait time must be a number between 0 and 300 minutes');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       setError('');
       setWarning('');
-      const result = await reportsService.submitWaitReport(venue._id, {
-        reportedWaitMinutes: parseInt(waitMinutes),
+      const result = await reportsService.submitWaitReport(venue._id || venue.venueId, {
+        reportedWaitMinutes: waitMinutesNum,
         location
       });
 
