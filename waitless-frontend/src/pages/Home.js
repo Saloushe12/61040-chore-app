@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVenues } from '../hooks/useVenues';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useSuggestedVenues } from '../hooks/useSuggestedVenues';
 import VenueList from '../components/venue/VenueList';
-import SuggestedVenueList from '../components/venue/SuggestedVenueList';
+import SuggestedVenueCard from '../components/venue/SuggestedVenueCard';
 import GoogleMap from '../components/map/GoogleMap';
 import AddVenueForm from '../components/venue/AddVenueForm';
 import './Home.css';
 
 const Home = () => {
-  const [activeTab, setActiveTab] = useState('suggested'); // 'suggested', 'venues', or 'map'
+  const [activeTab, setActiveTab] = useState('venues'); // 'venues' or 'map'
   const [showAddForm, setShowAddForm] = useState(false);
   const { venues, loading, error, refetch, addVenue } = useVenues();
   const { suggestions, loading: suggestionsLoading, error: suggestionsError, refetch: refetchSuggestions } = useSuggestedVenues();
@@ -39,6 +39,50 @@ const Home = () => {
     }
   };
 
+  // Deduplicate suggestions - normalize IDs to strings for consistent comparison
+  const uniqueSuggestions = useMemo(() => {
+    if (!suggestions || suggestions.length === 0) return [];
+    const seen = new Set();
+    return suggestions.filter(venue => {
+      const id = String(venue._id || venue.venueId || '');
+      if (!id || id === 'undefined' || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [suggestions]);
+
+  // Get unique suggestion IDs to filter them out from regular venues - normalize to strings
+  const suggestionIds = useMemo(() => {
+    if (!uniqueSuggestions || uniqueSuggestions.length === 0) return new Set();
+    return new Set(
+      uniqueSuggestions
+        .map(venue => String(venue._id || venue.venueId || ''))
+        .filter(id => id && id !== 'undefined')
+    );
+  }, [uniqueSuggestions]);
+
+  // Filter out suggested venues from regular venues list and deduplicate - normalize IDs to strings
+  const filteredVenues = useMemo(() => {
+    if (!venues || venues.length === 0) return [];
+    
+    // First deduplicate by ID
+    const seenIds = new Set();
+    const deduplicated = venues.filter(venue => {
+      const id = String(venue._id || venue.venueId || '').toLowerCase().trim();
+      if (!id || id === 'undefined' || id === 'null' || seenIds.has(id)) {
+        return false;
+      }
+      seenIds.add(id);
+      return true;
+    });
+    
+    // Then filter out suggested venues
+    return deduplicated.filter(venue => {
+      const id = String(venue._id || venue.venueId || '').toLowerCase().trim();
+      return id && id !== 'undefined' && !suggestionIds.has(id);
+    });
+  }, [venues, suggestionIds]);
+
   return (
     <div className="home-container">
       <header className="home-header">
@@ -50,16 +94,10 @@ const Home = () => {
         <div className="tabs-container">
           <div className="tabs">
             <button
-              className={`tab ${activeTab === 'suggested' ? 'active' : ''}`}
-              onClick={() => setActiveTab('suggested')}
-            >
-              Suggested
-            </button>
-            <button
               className={`tab ${activeTab === 'venues' ? 'active' : ''}`}
               onClick={() => setActiveTab('venues')}
             >
-              Venue List
+              Venues
             </button>
             <button
               className={`tab ${activeTab === 'map' ? 'active' : ''}`}
@@ -77,21 +115,9 @@ const Home = () => {
         )}
 
         <div className="content-area">
-          {activeTab === 'suggested' && (
-            <div className="suggested-tab-content">
-              <SuggestedVenueList
-                suggestions={suggestions}
-                onVenueClick={handleVenueClick}
-                loading={suggestionsLoading}
-                error={suggestionsError}
-              />
-            </div>
-          )}
-
           {activeTab === 'venues' && (
             <div className="venues-tab-content">
               <div className="venues-header">
-                <h2>Venues</h2>
                 <button
                   className="add-venue-btn"
                   onClick={() => setShowAddForm(!showAddForm)}
@@ -109,12 +135,60 @@ const Home = () => {
                 </div>
               )}
 
-              <VenueList
-                venues={venues}
-                onVenueClick={handleVenueClick}
-                loading={loading}
-                error={error}
-              />
+              {/* Combined venue list: suggested first, then regular venues */}
+              <div className="unified-venue-list">
+                {/* Suggested venues section */}
+                {uniqueSuggestions && uniqueSuggestions.length > 0 && (
+                  <div className="suggested-section">
+                    <div className="suggestions-header">
+                      <h3>✨ Personalized Suggestions</h3>
+                      <p className="suggestions-subtitle">
+                        Based on your location and trending activity
+                      </p>
+                    </div>
+                    <div className="suggestions-list">
+                      {uniqueSuggestions.map((venue) => (
+                        <SuggestedVenueCard key={venue._id || venue.venueId} venue={venue} onClick={handleVenueClick} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Regular venues section */}
+                {filteredVenues && filteredVenues.length > 0 && (
+                  <div className="regular-venues-section">
+                    {uniqueSuggestions && uniqueSuggestions.length > 0 && (
+                      <div className="venues-section-header">
+                        <h3>All Venues</h3>
+                      </div>
+                    )}
+                    <VenueList
+                      venues={filteredVenues}
+                      onVenueClick={handleVenueClick}
+                      loading={loading}
+                      error={error}
+                    />
+                  </div>
+                )}
+
+                {/* Loading states */}
+                {((suggestionsLoading && (!suggestions || suggestions.length === 0)) || (loading && (!venues || venues.length === 0))) && (
+                  <div className="venue-list-message">Loading venues...</div>
+                )}
+
+                {/* Error states */}
+                {suggestionsError && (!suggestions || suggestions.length === 0) && (
+                  <div className="venue-list-error">Error loading suggestions: {suggestionsError}</div>
+                )}
+                {error && (!venues || venues.length === 0) && (
+                  <div className="venue-list-error">Error: {error}</div>
+                )}
+
+                {/* Empty state */}
+                {(!uniqueSuggestions || uniqueSuggestions.length === 0) && (!filteredVenues || filteredVenues.length === 0) && !suggestionsLoading && !loading && (
+                  <div className="venue-list-message">No venues found nearby</div>
+                )}
+              </div>
             </div>
           )}
 

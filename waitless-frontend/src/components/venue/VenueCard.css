@@ -4,12 +4,15 @@
   border: 2px solid rgba(168, 85, 247, 0.5) !important;
   border-radius: 12px !important;
   padding: 18px !important;
-  margin-bottom: 12px !important;
+  margin-bottom: 0 !important;
   cursor: pointer !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   position: relative !important;
   overflow: hidden !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8) !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .venue-card::before {
@@ -54,21 +57,31 @@
   margin-bottom: 8px;
   position: relative;
   z-index: 1;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
 .venue-name {
   margin: 0;
-  font-size: 18px;
+  font-size: 24px !important;
   font-weight: 800;
   color: #ffffff !important;
   letter-spacing: 0.3px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.venue-card .venue-name {
+  font-size: 24px !important;
 }
 
 .status-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 10px;
+  padding: 2px 6px !important;
+  border-radius: 8px !important;
+  font-size: 8px !important;
   font-weight: 700;
   color: white;
   text-transform: uppercase;
@@ -78,9 +91,15 @@
   z-index: 1;
 }
 
+.venue-card .status-badge {
+  padding: 2px 6px !important;
+  border-radius: 8px !important;
+  font-size: 8px !important;
+}
+
 .venue-address {
   margin: 0 0 12px 0;
-  font-size: 14px;
+  font-size: 12px !important;
   color: #cbd5e1 !important;
   display: flex;
   align-items: center;
@@ -90,9 +109,17 @@
   font-weight: 500;
 }
 
+.venue-card .venue-address {
+  font-size: 12px !important;
+}
+
 .venue-address::before {
   content: '📍';
-  font-size: 14px;
+  font-size: 12px !important;
+}
+
+.venue-card .venue-address::before {
+  font-size: 12px !important;
 }
 
 .venue-tags {
@@ -105,16 +132,20 @@
 }
 
 .tag {
-  padding: 5px 12px;
+  padding: 4px 10px;
   background: rgba(168, 85, 247, 0.25);
   border: 1px solid rgba(168, 85, 247, 0.5);
   border-radius: 12px;
-  font-size: 11px;
+  font-size: 9px !important;
   color: #e9d5ff !important;
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: 0.5px;
   transition: all 0.2s;
+}
+
+.venue-card .tag {
+  font-size: 9px !important;
 }
 
 .tag:hover {
@@ -130,6 +161,7 @@
   border-top: 1px solid rgba(168, 85, 247, 0.2);
   position: relative;
   z-index: 1;
+  margin-top: auto;
 }
 
 .metric {
@@ -161,6 +193,7 @@
   position: relative;
   z-index: 1;
   font-weight: 500;
+  margin-top: auto;
 }
 
 /* Updated: Force dark backgrounds v2 */

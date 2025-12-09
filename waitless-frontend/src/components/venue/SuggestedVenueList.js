@@ -3,11 +3,13 @@ import SuggestedVenueCard from './SuggestedVenueCard';
 import './SuggestedVenueList.css';
 
 const SuggestedVenueList = ({ suggestions, onVenueClick, loading, error }) => {
-  if (loading) {
+  // Only show loading if we have no suggestions yet
+  if (loading && (!suggestions || suggestions.length === 0)) {
     return <div className="suggested-venue-list-message">Loading suggestions...</div>;
   }
 
-  if (error) {
+  // Show error only if we have no suggestions to display
+  if (error && (!suggestions || suggestions.length === 0)) {
     return <div className="suggested-venue-list-error">Error: {error}</div>;
   }
 

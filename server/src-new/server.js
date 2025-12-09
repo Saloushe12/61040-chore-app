@@ -73,6 +73,7 @@ app.use('/api/venues', require('./routes/venues'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/alerts', require('./routes/alerts'));
+app.use('/api/heatmap', require('./routes/heatmap'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -99,6 +100,10 @@ connectDB()
       console.log(`Server running on port ${PORT} (src-new architecture)`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`Architecture: Concept-based with raw MongoDB`);
+      
+      // Start automatic snapshot recording job (runs every 15 minutes)
+      const { startSnapshotJob } = require('./jobs/snapshotRecording');
+      startSnapshotJob();
     });
   })
   .catch((err) => {

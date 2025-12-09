@@ -97,16 +97,16 @@ const SimpleMap = ({ venues, onVenueClick, userLocation }) => {
 
         {/* Venue markers */}
         {mapData.venues.map((venue) => (
-          <div
-            key={venue._id}
+            <div
+              key={venue._id}
             className="venue-marker"
-            onClick={() => onVenueClick(venue)}
-            style={{
+              onClick={() => onVenueClick(venue)}
+              style={{
               left: `${venue.x}%`,
               top: `${venue.y}%`,
-              borderColor: getCrowdColor(venue.metrics?.crowdDensity)
-            }}
-          >
+                borderColor: getCrowdColor(venue.metrics?.crowdDensity)
+              }}
+            >
             <div className="venue-marker-pin" style={{ backgroundColor: getCrowdColor(venue.metrics?.crowdDensity) }} />
             <div className="venue-marker-popup">
               <div className="venue-marker-name">{venue.name}</div>
@@ -119,8 +119,8 @@ const SimpleMap = ({ venues, onVenueClick, userLocation }) => {
                 </div>
               )}
             </div>
-          </div>
-        ))}
+            </div>
+          ))}
       </div>
     </div>
   );

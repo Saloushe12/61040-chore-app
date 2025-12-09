@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { venuesService } from '../services/venues';
 import { useRealtime } from '../hooks/useRealtime';
+import { useGeolocation } from '../hooks/useGeolocation';
 import WaitReportForm from '../components/reports/WaitReportForm';
 import VibeReportForm from '../components/reports/VibeReportForm';
+import VenueDetailGoogleMap from '../components/map/VenueDetailGoogleMap';
 import Button from '../components/common/Button';
 import './VenueDetail.css';
 
@@ -17,6 +19,7 @@ const VenueDetail = () => {
   const [showWaitForm, setShowWaitForm] = useState(false);
   const [showVibeForm, setShowVibeForm] = useState(false);
   const { updates, alerts } = useRealtime(id);
+  const { location: userLocation } = useGeolocation();
 
   useEffect(() => {
     fetchVenueDetails();
@@ -58,6 +61,10 @@ const VenueDetail = () => {
       </div>
 
       <p className="venue-address">{venue.address}</p>
+
+      {venue.location && (
+        <VenueDetailGoogleMap venue={venue} userLocation={userLocation} />
+      )}
 
       {venue.tags && venue.tags.length > 0 && (
         <div className="tags-container">

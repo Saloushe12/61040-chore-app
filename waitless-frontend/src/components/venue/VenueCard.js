@@ -37,6 +37,7 @@ const VenueCard = ({ venue, onClick }) => {
       onClick={() => onClick(venue)}
       style={{
         backgroundColor: '#1a1d3a',
+        background: '#1a1d3a',
         color: '#ffffff',
         border: '2px solid rgba(168, 85, 247, 0.5)',
         borderRadius: '12px',
@@ -45,24 +46,27 @@ const VenueCard = ({ venue, onClick }) => {
       }}
     >
       <div className="venue-header">
-        <h3 className="venue-name" style={{ color: '#ffffff' }}>{name}</h3>
+        <h3 className="venue-name" style={{ color: '#ffffff', fontSize: '24px' }}>{name}</h3>
         <span
           className="status-badge"
           style={{ 
             backgroundColor: getStatusColor(currentStatus),
-            boxShadow: `0 0 20px ${getStatusColor(currentStatus)}`
+            boxShadow: `0 0 20px ${getStatusColor(currentStatus)}`,
+            padding: '2px 6px',
+            fontSize: '8px',
+            borderRadius: '8px'
           }}
         >
           {getStatusEmoji(currentStatus)} {currentStatus.replace('_', ' ')}
         </span>
       </div>
 
-      <p className="venue-address" style={{ color: '#cbd5e1' }}>{address}</p>
+      <p className="venue-address" style={{ color: '#cbd5e1', fontSize: '12px' }}>{address}</p>
 
       {tags && tags.length > 0 && (
         <div className="venue-tags">
           {tags.map((tag) => (
-            <span key={tag} className="tag" style={{ color: '#e9d5ff' }}>
+            <span key={tag} className="tag" style={{ color: '#e9d5ff', fontSize: '9px' }}>
               {tag}
             </span>
           ))}

@@ -17,21 +17,27 @@ Jonathan Zhao, Dylan Yu, Stephen Lee, Anna Kaganov
 ### Beta Checkpoint
 
 **Features**:
-- Real-time feed of wait time updates
-- Venue profiles (location, hours, basic stats)
-- Crowd density reporting
-- Vibe level reporting
-- Filter venues by basic categories
-- Push notification infrastructure (setup)
-- Heat map visualization (basic)
-- User profile and history
+- Real-time feed of wait time updates (Socket.io WebSocket integration)
+- Venue profiles with location, hours, and current metrics (wait times, crowd density, vibe levels)
+- Crowd density reporting (via VibeReport with low/medium/high levels)
+- Vibe level reporting (noise: chill/moderate/loud, energy: low/medium/hype, music tags)
+- Filter venues by basic categories (tags filtering)
+- Push notification infrastructure (alert subscriptions with conditions for wait times, crowd density, and events)
+- Heat map visualization (backend implemented in src-new architecture, frontend integration pending)
+- User profile and contribution history (report history tracking)
+- Geofence verification for report authenticity (100m radius)
+- Peak time forecasting (basic algorithm with historical data)
+- Event filtering and venue events display (create, update, cancel events)
+- Suggested venues (closest + trending venues based on activity)
+- Data aggregation (30-minute time windows for metrics)
+- Real-time venue updates via WebSocket (status changes, new reports)
+- Venue creation and management
+- Venue status updates
 
 ### User Testing
 
 **Features**:
-- Push alerts for wait time changes
-- Event filtering and venue events display
-- Peak time prediction (basic algorithm)
+- Push alerts for wait time changes (enhancement of notification infrastructure)
 - Anonymous reporting option
 - Location privacy controls
 - Performance optimization
