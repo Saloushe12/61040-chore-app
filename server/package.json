@@ -2,19 +2,12 @@
   "name": "waitless-backend",
   "version": "1.0.0",
   "description": "WaitLess Backend API",
-  "main": "src/server.js",
+  "main": "src-new/server.js",
   "scripts": {
     "start": "node src-new/server.js",
     "dev": "nodemon src-new/server.js",
-    "start:old": "node src/server.js",
-    "dev:old": "nodemon src/server.js",
-    "start:new": "node src-new/server.js",
-    "dev:new": "nodemon src-new/server.js",
     "test": "jest",
-    "seed": "node src-new/utils/seed.js",
-    "seed:reports": "node src/utils/seedReports.js",
-    "seed:old": "node src/utils/seed.js",
-    "seed:boston": "node src/utils/seedBoston.js"
+    "seed": "node src-new/utils/seed.js"
   },
   "keywords": [
     "nightlife",
