@@ -95,7 +95,12 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 connectDB()
-  .then(() => {
+  .then((db) => {
+    // Share the database connection with the database utility
+    // This ensures concepts use the same connection
+    const { setDb } = require('./utils/database');
+    setDb(db);
+    
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT} (src-new architecture)`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);

@@ -8,8 +8,17 @@ let cachedClient = null;
 let cachedDb = null;
 
 /**
+ * Set the database instance (called from server.js after connection)
+ * This ensures we use the same connection as config/db.js
+ */
+function setDb(db) {
+  cachedDb = db;
+}
+
+/**
  * Get a connected MongoDB database instance.
  * Uses a singleton client so multiple concept classes can share the connection.
+ * Falls back to creating its own connection if not set via setDb().
  */
 async function getDb() {
   if (cachedDb) {
@@ -56,6 +65,7 @@ module.exports = {
   getCollection,
   freshID,
   ObjectId,
+  setDb,
 };
 
 

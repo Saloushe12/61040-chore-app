@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const { getCollection, freshID, ObjectId } = require('../utils/database');
 
 /**
- * State: Users are stored in the `User.users` collection with:
+ * State: Users are stored in the `users` collection with:
  * - _id: ID
  * - role: 'patron' | 'venue_operator'
  * - displayName?: string
@@ -26,9 +26,9 @@ class UserConcept {
 
   async _users() {
     if (this.db) {
-      return this.db.collection('User.users');
+      return this.db.collection('users');
     }
-    return getCollection('User.users');
+    return getCollection('users');
   }
 
   /**
