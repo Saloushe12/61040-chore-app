@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useGeolocation } from '../../hooks/useGeolocation';
+import { AuthContext } from '../../contexts/AuthContext';
 import { reportsService } from '../../services/reports';
 import Button from '../common/Button';
 import './WaitReportForm.css';
 
 const WaitReportForm = ({ venue, onSubmit, onCancel }) => {
+  const { user } = useContext(AuthContext);
   const [waitMinutes, setWaitMinutes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
   const [success, setSuccess] = useState(false);
+  const [submitAnonymously, setSubmitAnonymously] = useState(false);
   const { location } = useGeolocation();
 
   const handleSubmit = async (e) => {
@@ -35,7 +38,8 @@ const WaitReportForm = ({ venue, onSubmit, onCancel }) => {
       setWarning('');
       const result = await reportsService.submitWaitReport(venue._id || venue.venueId, {
         reportedWaitMinutes: waitMinutesNum,
-        location
+        location,
+        anonymous: submitAnonymously
       });
 
       if (!result.geofence.verified) {
@@ -78,6 +82,17 @@ const WaitReportForm = ({ venue, onSubmit, onCancel }) => {
           placeholder="Enter wait time in minutes"
         />
         <small>How long is the current wait to get in?</small>
+      </div>
+
+      <div className="form-group">
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={submitAnonymously}
+            onChange={(e) => setSubmitAnonymously(e.target.checked)}
+          />
+          <span>Submit anonymously (your report will not be linked to your account)</span>
+        </label>
       </div>
 
       {error && <div className="error-message">{error}</div>}

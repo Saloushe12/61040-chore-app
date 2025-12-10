@@ -11,6 +11,15 @@ const AddVenueForm = ({ onSubmit, onCancel }) => {
     name: '',
     address: '',
     tags: [],
+    hours: {
+      monday: { open: '', close: '' },
+      tuesday: { open: '', close: '' },
+      wednesday: { open: '', close: '' },
+      thursday: { open: '', close: '' },
+      friday: { open: '', close: '' },
+      saturday: { open: '', close: '' },
+      sunday: { open: '', close: '' }
+    },
     coverCharge: '',
     minAge: '',
     capacity: ''
@@ -36,6 +45,19 @@ const AddVenueForm = ({ onSubmit, onCancel }) => {
     }));
   };
 
+  const handleHoursChange = (day, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      hours: {
+        ...prev.hours,
+        [day]: {
+          ...prev.hours[day],
+          [field]: value
+        }
+      }
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -48,12 +70,25 @@ const AddVenueForm = ({ onSubmit, onCancel }) => {
       const latitude = location ? location.latitude : 0;
       const longitude = location ? location.longitude : 0;
 
+      // Build hours object, only including days with both open and close times
+      const hours = {};
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      days.forEach(day => {
+        if (formData.hours[day].open && formData.hours[day].close) {
+          hours[day] = {
+            open: formData.hours[day].open,
+            close: formData.hours[day].close
+          };
+        }
+      });
+
       const venueData = {
         name: formData.name.trim(),
         address: formData.address.trim(),
         latitude: latitude,
         longitude: longitude,
         tags: formData.tags,
+        hours: Object.keys(hours).length > 0 ? hours : undefined,
         staticAttributes: {
           ...(formData.coverCharge && { coverCharge: parseFloat(formData.coverCharge) }),
           ...(formData.minAge && { minAge: parseInt(formData.minAge) }),
@@ -69,6 +104,15 @@ const AddVenueForm = ({ onSubmit, onCancel }) => {
         name: '',
         address: '',
         tags: [],
+        hours: {
+          monday: { open: '', close: '' },
+          tuesday: { open: '', close: '' },
+          wednesday: { open: '', close: '' },
+          thursday: { open: '', close: '' },
+          friday: { open: '', close: '' },
+          saturday: { open: '', close: '' },
+          sunday: { open: '', close: '' }
+        },
         coverCharge: '',
         minAge: '',
         capacity: ''
@@ -136,6 +180,35 @@ const AddVenueForm = ({ onSubmit, onCancel }) => {
             >
               {tag}
             </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Operating Hours (optional)</label>
+        <small style={{ display: 'block', marginBottom: '12px', color: '#6b7280' }}>
+          Enter opening and closing times for each day (24-hour format, e.g., 17:00, 02:00)
+        </small>
+        <div className="hours-grid">
+          {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+            <div key={day} className="hours-row">
+              <label className="day-label">{day.charAt(0).toUpperCase() + day.slice(1)}</label>
+              <div className="hours-inputs">
+                <input
+                  type="time"
+                  value={formData.hours[day].open}
+                  onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                  placeholder="Open"
+                />
+                <span className="hours-separator">-</span>
+                <input
+                  type="time"
+                  value={formData.hours[day].close}
+                  onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                  placeholder="Close"
+                />
+              </div>
+            </div>
           ))}
         </div>
       </div>

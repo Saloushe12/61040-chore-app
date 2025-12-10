@@ -46,12 +46,13 @@ router.post(
   ],
   async (req, res) => {
     try {
-      const { venueId, reportedWaitMinutes, latitude, longitude, displayName } = req.body;
+      const { venueId, reportedWaitMinutes, latitude, longitude, displayName, anonymous } = req.body;
       
       // Support anonymous reporting: userId is optional
-      // If authenticated, use userId; otherwise require displayName for pseudonym
-      const userId = req.userId ? req.userId.toString() : null;
-      if (!userId && !displayName) {
+      // If anonymous flag is set, don't use userId even if authenticated
+      // If authenticated and not anonymous, use userId; otherwise require displayName for pseudonym
+      const userId = (anonymous || !req.userId) ? null : req.userId.toString();
+      if (!userId && !displayName && !anonymous) {
         return res.status(400).json({ 
           error: 'Either authentication or displayName is required for anonymous reporting' 
         });
@@ -242,12 +243,14 @@ router.post(
         latitude,
         longitude,
         displayName,
+        anonymous,
       } = req.body;
       
       // Support anonymous reporting: userId is optional
-      // If authenticated, use userId; otherwise require displayName for pseudonym
-      const userId = req.userId ? req.userId.toString() : null;
-      if (!userId && !displayName) {
+      // If anonymous flag is set, don't use userId even if authenticated
+      // If authenticated and not anonymous, use userId; otherwise require displayName for pseudonym
+      const userId = (anonymous || !req.userId) ? null : req.userId.toString();
+      if (!userId && !displayName && !anonymous) {
         return res.status(400).json({ 
           error: 'Either authentication or displayName is required for anonymous reporting' 
         });

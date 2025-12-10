@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVenues } from '../hooks/useVenues';
 import { useGeolocation } from '../hooks/useGeolocation';
@@ -17,10 +17,29 @@ const Home = () => {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [mapInstance, setMapInstance] = useState(null);
   const [mapBounds, setMapBounds] = useState(null);
-  const { venues, loading, error, refetch, addVenue } = useVenues();
-  const { suggestions, loading: suggestionsLoading, error: suggestionsError, refetch: refetchSuggestions } = useSuggestedVenues();
+  const [selectedTags, setSelectedTags] = useState([]);
   const { location, error: locationError } = useGeolocation();
+  const { venues, loading, error, refetch, addVenue } = useVenues(5000, selectedTags.length > 0 ? selectedTags : null);
+  const { suggestions, loading: suggestionsLoading, error: suggestionsError, refetch: refetchSuggestions } = useSuggestedVenues();
   const navigate = useNavigate();
+  
+  // Refetch venues when tags change (but not on every location update)
+  useEffect(() => {
+    if (location) {
+      refetch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTags]); // Only refetch when tags change, not on location updates
+
+  const availableTags = ['bar', 'club', 'restaurant', 'sports_bar', 'live_music', 'dance', 'lounge', 'rooftop', 'jazz', 'italian', 'pub', 'brewery'];
+
+  const toggleTagFilter = (tag) => {
+    setSelectedTags(prev => 
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
 
   const handleVenueClick = (venue) => {
     // Handle both _id and venueId for compatibility
@@ -125,6 +144,32 @@ const Home = () => {
               <RecentReportsSummary />
               
               <div className="venues-header">
+                <div className="header-left">
+                  <div className="tag-filters">
+                    <label className="filter-label">Filter by tags:</label>
+                    <div className="tag-filter-buttons">
+                      {availableTags.map(tag => (
+                        <button
+                          key={tag}
+                          type="button"
+                          className={`tag-filter-btn ${selectedTags.includes(tag) ? 'active' : ''}`}
+                          onClick={() => toggleTagFilter(tag)}
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                      {selectedTags.length > 0 && (
+                        <button
+                          type="button"
+                          className="tag-filter-btn clear-btn"
+                          onClick={() => setSelectedTags([])}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 <button
                   className="add-venue-btn"
                   onClick={() => setShowAddForm(!showAddForm)}

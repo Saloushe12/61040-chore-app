@@ -67,7 +67,22 @@ router.get(
   async (req, res) => {
     try {
       const { latitude, longitude, radius = 5000, tags } = req.query;
-      const tagArray = tags ? tags.split(',') : undefined;
+      
+      // Handle tags - can be array (from axios tags[]=value1&tags[]=value2) or comma-separated string
+      let tagArray = undefined;
+      if (tags) {
+        if (Array.isArray(tags)) {
+          // Axios sends arrays as tags[]=value1&tags[]=value2, Express parses as array
+          tagArray = tags.filter(t => t && String(t).trim().length > 0).map(t => String(t).trim());
+        } else if (typeof tags === 'string') {
+          // Comma-separated string format
+          tagArray = tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
+        }
+        // Set to undefined if empty after filtering
+        if (tagArray && tagArray.length === 0) {
+          tagArray = undefined;
+        }
+      }
 
       const result = await nearbyVenuesSync({
         latitude: parseFloat(latitude),

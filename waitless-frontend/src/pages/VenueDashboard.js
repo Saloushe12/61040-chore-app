@@ -14,6 +14,9 @@ const VenueDashboard = () => {
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [showEventForm, setShowEventForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [showWaitOverride, setShowWaitOverride] = useState(null);
+  const [showEditProfile, setShowEditProfile] = useState(null);
+  const [waitOverrideMinutes, setWaitOverrideMinutes] = useState('');
 
   useEffect(() => {
     // Redirect if not a venue operator
@@ -60,6 +63,35 @@ const VenueDashboard = () => {
     }
   };
 
+  const handleWaitOverride = async (venueId) => {
+    const minutes = parseInt(waitOverrideMinutes, 10);
+    if (isNaN(minutes) || minutes < 0 || minutes > 300) {
+      alert('Wait time must be a number between 0 and 300 minutes');
+      return;
+    }
+
+    try {
+      await dashboardService.submitWaitOverride(venueId, minutes);
+      setShowWaitOverride(null);
+      setWaitOverrideMinutes('');
+      await loadDashboard();
+      alert('Wait time override submitted successfully');
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to submit wait override');
+    }
+  };
+
+  const handleUpdateProfile = async (venueId, profileData) => {
+    try {
+      await dashboardService.updateVenueProfile(venueId, profileData);
+      setShowEditProfile(null);
+      await loadDashboard();
+      alert('Venue profile updated successfully');
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to update venue profile');
+    }
+  };
+
   if (loading) {
     return <div className="dashboard-loading">Loading dashboard...</div>;
   }
@@ -87,7 +119,7 @@ const VenueDashboard = () => {
 
       <div className="venues-grid">
         {dashboard.venues.map((venue) => (
-          <div key={venue._id} className="venue-dashboard-card">
+          <div key={venue._id || venue.venueId} className="venue-dashboard-card">
             <div className="venue-card-header">
               <div>
                 <h2>{venue.name}</h2>
@@ -96,7 +128,7 @@ const VenueDashboard = () => {
               <div className="venue-status-control">
                 <select
                   value={venue.currentStatus}
-                  onChange={(e) => handleStatusChange(venue._id, e.target.value)}
+                  onChange={(e) => handleStatusChange(venue._id || venue.venueId, e.target.value)}
                   className={`status-select status-${venue.currentStatus}`}
                 >
                   <option value="open">Open</option>
@@ -141,7 +173,7 @@ const VenueDashboard = () => {
                 <button
                   className="create-event-btn"
                   onClick={() => {
-                    setSelectedVenue(venue);
+                    setSelectedVenue({ ...venue, _id: venue._id || venue.venueId });
                     setShowEventForm(true);
                   }}
                 >
@@ -224,9 +256,24 @@ const VenueDashboard = () => {
             <div className="venue-actions">
               <button
                 className="view-details-btn"
-                onClick={() => navigate(`/venue/${venue._id}`)}
+                onClick={() => navigate(`/venue/${venue._id || venue.venueId}`)}
               >
                 View Public Page
+              </button>
+              <button
+                className="edit-profile-btn"
+                onClick={() => setShowEditProfile(venue._id || venue.venueId)}
+              >
+                Edit Profile
+              </button>
+              <button
+                className="wait-override-btn"
+                onClick={() => {
+                  setShowWaitOverride(venue._id || venue.venueId);
+                  setWaitOverrideMinutes('');
+                }}
+              >
+                Override Wait Time
               </button>
             </div>
           </div>
@@ -242,7 +289,28 @@ const VenueDashboard = () => {
             setSelectedVenue(null);
             setEditingEvent(null);
           }}
-          onSubmit={(eventData) => handleCreateEvent(selectedVenue._id, eventData)}
+          onSubmit={(eventData) => handleCreateEvent(selectedVenue._id || selectedVenue.venueId, eventData)}
+        />
+      )}
+
+      {showWaitOverride && (
+        <WaitOverrideModal
+          venue={dashboard.venues.find(v => (v._id || v.venueId) === showWaitOverride)}
+          waitMinutes={waitOverrideMinutes}
+          onWaitMinutesChange={setWaitOverrideMinutes}
+          onSubmit={() => handleWaitOverride(showWaitOverride)}
+          onClose={() => {
+            setShowWaitOverride(null);
+            setWaitOverrideMinutes('');
+          }}
+        />
+      )}
+
+      {showEditProfile && (
+        <VenueProfileEditModal
+          venue={dashboard.venues.find(v => (v._id || v.venueId) === showEditProfile)}
+          onSubmit={(profileData) => handleUpdateProfile(showEditProfile, profileData)}
+          onClose={() => setShowEditProfile(null)}
         />
       )}
     </div>
@@ -272,7 +340,7 @@ const EventFormModal = ({ venue, event, onClose, onSubmit }) => {
         alert(err.response?.data?.error || 'Failed to update event');
       }
     } else {
-      onSubmit(formData);
+    onSubmit(formData);
     }
   };
 
@@ -357,6 +425,267 @@ const EventFormModal = ({ venue, event, onClose, onSubmit }) => {
             </button>
             <button type="submit" className="submit-btn">
               {event ? 'Update' : 'Create'} Event
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const WaitOverrideModal = ({ venue, waitMinutes, onWaitMinutesChange, onSubmit, onClose }) => {
+  if (!venue) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Override Wait Time for {venue.name}</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }}>
+          <div className="form-group">
+            <label>Wait Time (minutes)</label>
+            <input
+              type="number"
+              min="0"
+              max="300"
+              value={waitMinutes}
+              onChange={(e) => onWaitMinutesChange(e.target.value)}
+              required
+              placeholder="Enter wait time in minutes"
+            />
+            <small>This will override the current user-reported wait time</small>
+          </div>
+          <div className="form-actions">
+            <button type="button" onClick={onClose} className="cancel-btn">
+              Cancel
+            </button>
+            <button type="submit" className="submit-btn">
+              Submit Override
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const VenueProfileEditModal = ({ venue, onSubmit, onClose }) => {
+  const [formData, setFormData] = useState({
+    name: venue?.name || '',
+    address: venue?.address || '',
+    tags: venue?.tags || [],
+    hours: venue?.hours || {
+      monday: { open: '', close: '' },
+      tuesday: { open: '', close: '' },
+      wednesday: { open: '', close: '' },
+      thursday: { open: '', close: '' },
+      friday: { open: '', close: '' },
+      saturday: { open: '', close: '' },
+      sunday: { open: '', close: '' }
+    },
+    staticAttributes: {
+      coverCharge: venue?.staticAttributes?.coverCharge || 0,
+      minAge: venue?.staticAttributes?.minAge || 21,
+      accessibility: venue?.staticAttributes?.accessibility !== false,
+      capacity: venue?.staticAttributes?.capacity || 100
+    }
+  });
+
+  if (!venue) return null;
+
+  const availableTags = ['bar', 'club', 'restaurant', 'sports_bar', 'live_music', 'dance', 'lounge', 'rooftop', 'jazz', 'italian'];
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Build hours object, only including days with both open and close times
+    const hours = {};
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    days.forEach(day => {
+      if (formData.hours[day]?.open && formData.hours[day]?.close) {
+        hours[day] = {
+          open: formData.hours[day].open,
+          close: formData.hours[day].close
+        };
+      }
+    });
+    
+    onSubmit({
+      ...formData,
+      hours: Object.keys(hours).length > 0 ? hours : undefined
+    });
+  };
+
+  const toggleTag = (tag) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.includes(tag)
+        ? prev.tags.filter(t => t !== tag)
+        : [...prev.tags, tag]
+    }));
+  };
+
+  const handleHoursChange = (day, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      hours: {
+        ...prev.hours,
+        [day]: {
+          ...(prev.hours[day] || { open: '', close: '' }),
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Edit Venue Profile: {venue.name}</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <form onSubmit={handleSubmit} className="event-form">
+          <div className="form-group">
+            <label>Venue Name *</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Address *</label>
+            <input
+              type="text"
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Tags</label>
+            <div className="tag-selector">
+              {availableTags.map(tag => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`tag-button ${formData.tags.includes(tag) ? 'selected' : ''}`}
+                  onClick={() => toggleTag(tag)}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Operating Hours</label>
+            <small style={{ display: 'block', marginBottom: '12px', color: '#666', fontSize: '0.85rem' }}>
+              Enter opening and closing times for each day (24-hour format)
+            </small>
+            <div className="hours-grid">
+              {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+                <div key={day} className="hours-row">
+                  <label className="day-label">{day.charAt(0).toUpperCase() + day.slice(1)}</label>
+                  <div className="hours-inputs">
+                    <input
+                      type="time"
+                      value={formData.hours[day]?.open || ''}
+                      onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                      placeholder="Open"
+                    />
+                    <span className="hours-separator">-</span>
+                    <input
+                      type="time"
+                      value={formData.hours[day]?.close || ''}
+                      onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                      placeholder="Close"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Cover Charge ($)</label>
+              <input
+                type="number"
+                min="0"
+                value={formData.staticAttributes.coverCharge}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  staticAttributes: {
+                    ...formData.staticAttributes,
+                    coverCharge: parseInt(e.target.value) || 0
+                  }
+                })}
+              />
+            </div>
+            <div className="form-group">
+              <label>Minimum Age</label>
+              <input
+                type="number"
+                min="0"
+                max="21"
+                value={formData.staticAttributes.minAge}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  staticAttributes: {
+                    ...formData.staticAttributes,
+                    minAge: parseInt(e.target.value) || 21
+                  }
+                })}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Capacity</label>
+              <input
+                type="number"
+                min="1"
+                value={formData.staticAttributes.capacity}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  staticAttributes: {
+                    ...formData.staticAttributes,
+                    capacity: parseInt(e.target.value) || 100
+                  }
+                })}
+              />
+            </div>
+            <div className="form-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={formData.staticAttributes.accessibility}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    staticAttributes: {
+                      ...formData.staticAttributes,
+                      accessibility: e.target.checked
+                    }
+                  })}
+                />
+                <span>Accessible</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="form-actions">
+            <button type="button" onClick={onClose} className="cancel-btn">
+              Cancel
+            </button>
+            <button type="submit" className="submit-btn">
+              Update Profile
             </button>
           </div>
         </form>

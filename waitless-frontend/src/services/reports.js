@@ -2,17 +2,22 @@ import api from './api';
 
 export const reportsService = {
   async submitWaitReport(venueId, reportData) {
-    const response = await api.post('/reports/wait', {
+    const payload = {
       venueId,
       reportedWaitMinutes: reportData.reportedWaitMinutes,
       latitude: reportData.location.latitude,
       longitude: reportData.location.longitude
-    });
+    };
+    // Only include anonymous flag if true (backend handles null userId)
+    if (reportData.anonymous) {
+      payload.anonymous = true;
+    }
+    const response = await api.post('/reports/wait', payload);
     return response.data;
   },
 
   async submitVibeReport(venueId, reportData) {
-    const response = await api.post('/reports/vibe', {
+    const payload = {
       venueId,
       crowdDensity: reportData.crowdDensity,
       noiseLevel: reportData.noiseLevel,
@@ -20,7 +25,12 @@ export const reportsService = {
       musicTags: reportData.musicTags,
       latitude: reportData.location.latitude,
       longitude: reportData.location.longitude
-    });
+    };
+    // Only include anonymous flag if true (backend handles null userId)
+    if (reportData.anonymous) {
+      payload.anonymous = true;
+    }
+    const response = await api.post('/reports/vibe', payload);
     return response.data;
   },
 

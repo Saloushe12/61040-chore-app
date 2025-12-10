@@ -364,8 +364,9 @@ body {
 
 .action-button {
   padding: 12px;
-  border: 1px solid #d1d5db;
-  background-color: white;
+  border: 2px solid rgba(168, 85, 247, 0.2);
+  background-color: rgba(10, 14, 39, 0.8);
+  color: var(--text-primary);
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
@@ -373,7 +374,8 @@ body {
 }
 
 .action-button:hover {
-  background-color: #f8fafc;
+  background-color: rgba(10, 14, 39, 1);
+  border-color: rgba(168, 85, 247, 0.4);
 }
 
 .action-button.primary {
@@ -479,8 +481,9 @@ body {
 
 .filter-button {
   padding: 10px 15px;
-  border: 1px solid #d1d5db;
-  background-color: white;
+  border: 2px solid rgba(168, 85, 247, 0.2);
+  background-color: rgba(10, 14, 39, 0.8);
+  color: var(--text-primary);
   border-radius: 8px;
   cursor: pointer;
   text-align: left;
@@ -488,13 +491,15 @@ body {
 }
 
 .filter-button:hover {
-  background-color: #f8fafc;
+  background-color: rgba(10, 14, 39, 1);
+  border-color: rgba(168, 85, 247, 0.4);
 }
 
 .filter-button.active {
-  background-color: #3b82f6;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   color: white;
-  border-color: #3b82f6;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
 .filter-actions {
@@ -532,11 +537,13 @@ body {
   transform: translateX(-50%);
   width: 100%;
   max-width: 400px;
-  background-color: white;
-  border-top: 1px solid #e2e8f0;
+  background-color: rgba(26, 29, 58, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 2px solid rgba(168, 85, 247, 0.3);
   display: flex;
   justify-content: space-around;
   padding: 10px 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .nav-item {
@@ -545,17 +552,17 @@ body {
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 12px;
   transition: color 0.2s;
 }
 
 .nav-item:hover {
-  color: #2563eb;
+  color: #a855f7;
 }
 
 .nav-item.active {
-  color: #2563eb;
+  color: #a855f7;
 }
 
 .nav-icon {

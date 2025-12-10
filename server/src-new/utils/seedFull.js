@@ -40,8 +40,7 @@ const daysAgo = (days) => {
 const seedFullDatabase = async () => {
   try {
     console.log('🌱 Starting comprehensive database seeding...\n');
-    console.log('⚠️  WARNING: This will add data to your database.');
-    console.log('   Existing data will NOT be deleted, but new data will be added.\n');
+    console.log('⚠️  WARNING: This will DELETE all existing seed data and recreate it.\n');
 
     // Connect to database
     const db = await connectDB();
@@ -56,6 +55,58 @@ const seedFullDatabase = async () => {
     const venueEventConcept = new VenueEventConcept(db);
     const alertSubscriptionConcept = new AlertSubscriptionConcept(db);
     const snapshotConcept = new VenueStatsSnapshotConcept(db);
+
+    // ============================================
+    // 0. DELETE EXISTING SEED DATA
+    // ============================================
+    console.log('🗑️  Deleting existing seed data...');
+    
+    // Delete test users (users with @example.com emails)
+    // First get their IDs before deleting to clear venue assignments
+    const usersCollection = await userConcept._users();
+    const testUsers = await usersCollection.find({ email: { $regex: /@example\.com$/ } }).toArray();
+    const testUserIds = testUsers.map(u => u._id);
+    
+    const deleteUsersResult = await usersCollection.deleteMany({ email: { $regex: /@example\.com$/ } });
+    console.log(`  ✓ Deleted ${deleteUsersResult.deletedCount} test users`);
+
+    // Delete all wait reports
+    const waitReportsCollection = await waitReportConcept._reports();
+    const deleteWaitReportsResult = await waitReportsCollection.deleteMany({});
+    console.log(`  ✓ Deleted ${deleteWaitReportsResult.deletedCount} wait reports`);
+
+    // Delete all vibe reports
+    const vibeReportsCollection = await vibeReportConcept._reports();
+    const deleteVibeReportsResult = await vibeReportsCollection.deleteMany({});
+    console.log(`  ✓ Deleted ${deleteVibeReportsResult.deletedCount} vibe reports`);
+
+    // Delete all events
+    const eventsCollection = await venueEventConcept._events();
+    const deleteEventsResult = await eventsCollection.deleteMany({});
+    console.log(`  ✓ Deleted ${deleteEventsResult.deletedCount} events`);
+
+    // Delete all alert subscriptions
+    const alertsCollection = await alertSubscriptionConcept._subs();
+    const deleteAlertsResult = await alertsCollection.deleteMany({});
+    console.log(`  ✓ Deleted ${deleteAlertsResult.deletedCount} alert subscriptions`);
+
+    // Delete all snapshots
+    const snapshotsCollection = await snapshotConcept._snapshots();
+    const deleteSnapshotsResult = await snapshotsCollection.deleteMany({});
+    console.log(`  ✓ Deleted ${deleteSnapshotsResult.deletedCount} snapshots`);
+
+    // Clear operator assignments from venues (set operatorUserId to null for deleted test operators)
+    const venuesCollection = await venueConcept._venues();
+    
+    if (testUserIds.length > 0) {
+      const clearOperatorResult = await venuesCollection.updateMany(
+        { operatorUserId: { $in: testUserIds } },
+        { $set: { operatorUserId: null } }
+      );
+      console.log(`  ✓ Cleared operator assignments from ${clearOperatorResult.modifiedCount} venues`);
+    }
+    
+    console.log('✅ Cleanup complete\n');
 
     // ============================================
     // 1. CREATE USERS
@@ -81,6 +132,8 @@ const seedFullDatabase = async () => {
       if (!result.error) {
         users.push({ id: result.userId, role: 'patron', email });
         console.log(`  ✓ Created patron: ${email}`);
+      } else {
+        console.log(`  ⚠ Skipped patron ${email}: ${result.error}`);
       }
     }
 
@@ -96,7 +149,14 @@ const seedFullDatabase = async () => {
       if (!result.error) {
         users.push({ id: result.userId, role: 'venue_operator', email });
         console.log(`  ✓ Created operator: ${email}`);
+      } else {
+        console.log(`  ⚠ Skipped operator ${email}: ${result.error}`);
       }
+    }
+
+    if (users.length === 0) {
+      console.error('❌ No users were created. Cannot continue seeding.');
+      process.exit(1);
     }
 
     console.log(`✅ Created ${users.length} users\n`);
@@ -105,7 +165,6 @@ const seedFullDatabase = async () => {
     // 2. GET OR CREATE VENUES
     // ============================================
     console.log('🏢 Getting venues...');
-    const venuesCollection = await venueConcept._venues();
     let venues = await venuesCollection.find({}).toArray();
     
     if (venues.length === 0) {
@@ -180,13 +239,17 @@ const seedFullDatabase = async () => {
     let waitReportCount = 0;
     const patrons = users.filter(u => u.role === 'patron');
 
-    for (const venue of venues) {
-      // Create 5-15 reports per venue over the past 2 weeks
-      const reportCount = randomInt(5, 15);
-      
-      for (let i = 0; i < reportCount; i++) {
-        const user = random(patrons);
-        const daysBack = randomInt(0, 14);
+      for (const venue of venues) {
+        // Create 5-15 reports per venue over the past 2 weeks
+        const reportCount = randomInt(5, 15);
+        
+        for (let i = 0; i < reportCount; i++) {
+          const user = random(patrons);
+          if (!user || !user.id) {
+            console.log('  ⚠ Skipping report: invalid user');
+            continue;
+          }
+          const daysBack = randomInt(0, 14);
         const hoursBack = randomInt(0, 23);
         const timestamp = new Date();
         timestamp.setDate(timestamp.getDate() - daysBack);
@@ -240,13 +303,17 @@ const seedFullDatabase = async () => {
     console.log('🎵 Creating vibe reports...');
     let vibeReportCount = 0;
 
-    for (const venue of venues) {
-      // Create 8-20 vibe reports per venue
-      const reportCount = randomInt(8, 20);
-      
-      for (let i = 0; i < reportCount; i++) {
-        const user = random(patrons);
-        const daysBack = randomInt(0, 14);
+      for (const venue of venues) {
+        // Create 8-20 vibe reports per venue
+        const reportCount = randomInt(8, 20);
+        
+        for (let i = 0; i < reportCount; i++) {
+          const user = random(patrons);
+          if (!user || !user.id) {
+            console.log('  ⚠ Skipping report: invalid user');
+            continue;
+          }
+          const daysBack = randomInt(0, 14);
         const hoursBack = randomInt(0, 23);
         const timestamp = new Date();
         timestamp.setDate(timestamp.getDate() - daysBack);
@@ -316,7 +383,10 @@ const seedFullDatabase = async () => {
       'Sports Watch Party', 'Dance Night', 'Rooftop Party', 'Acoustic Session'
     ];
 
-    for (const venue of venues) {
+    if (operators.length === 0) {
+      console.log('  ⚠ No operators found, skipping events');
+    } else {
+      for (const venue of venues) {
       // Create 2-5 upcoming events
       const upcomingCount = randomInt(2, 5);
       for (let i = 0; i < upcomingCount; i++) {
@@ -375,6 +445,7 @@ const seedFullDatabase = async () => {
         }
       }
     }
+    }
 
     console.log(`✅ Created ${eventCount} events\n`);
 
@@ -384,8 +455,11 @@ const seedFullDatabase = async () => {
     console.log('🔔 Creating alert subscriptions...');
     let alertCount = 0;
 
-    for (const user of patrons.slice(0, 10)) { // First 10 patrons get alerts
-      const venue = random(venues);
+    if (patrons.length === 0) {
+      console.log('  ⚠ No patrons found, skipping alert subscriptions');
+    } else {
+      for (const user of patrons.slice(0, Math.min(10, patrons.length))) { // First 10 patrons get alerts
+        const venue = random(venues);
       const condition = {};
 
       // Randomly add conditions
@@ -399,33 +473,34 @@ const seedFullDatabase = async () => {
         condition.eventTag = random(['trivia', 'live_music', 'dj', 'karaoke']);
       }
 
-      const result = await alertSubscriptionConcept.createAlertSubscription({
-        userId: user.id,
-        venueId: venue._id.toHexString(),
-        condition
-      });
+        const result = await alertSubscriptionConcept.createAlertSubscription({
+          userId: user.id,
+          venueId: venue._id.toHexString(),
+          condition
+        });
 
-      if (!result.error) {
-        alertCount++;
+        if (!result.error) {
+          alertCount++;
+        }
       }
     }
 
     console.log(`✅ Created ${alertCount} alert subscriptions\n`);
 
     // ============================================
-    // 7. CREATE HISTORICAL SNAPSHOTS (past week)
+    // 7. CREATE HISTORICAL SNAPSHOTS (past 2 days, hourly)
     // ============================================
     console.log('📊 Creating historical snapshots...');
     let snapshotCount = 0;
 
     for (const venue of venues) {
-      // Create snapshots every 15 minutes for the past 7 days
+      // Create snapshots every hour for the past 2 days (much faster than every 15 min for 7 days)
       const now = new Date();
-      const sevenDaysAgo = new Date(now);
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const twoDaysAgo = new Date(now);
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-      let currentTime = new Date(sevenDaysAgo);
-      currentTime.setMinutes(Math.floor(currentTime.getMinutes() / 15) * 15); // Round to 15 min
+      let currentTime = new Date(twoDaysAgo);
+      currentTime.setMinutes(0, 0, 0); // Round to start of hour
 
       while (currentTime < now) {
         const hour = currentTime.getHours();
@@ -455,7 +530,7 @@ const seedFullDatabase = async () => {
         });
 
         snapshotCount++;
-        currentTime.setMinutes(currentTime.getMinutes() + 15);
+        currentTime.setHours(currentTime.getHours() + 1); // Move to next hour
       }
     }
 

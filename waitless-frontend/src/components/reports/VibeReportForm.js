@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useGeolocation } from '../../hooks/useGeolocation';
+import { AuthContext } from '../../contexts/AuthContext';
 import { reportsService } from '../../services/reports';
 import Button from '../common/Button';
 import './VibeReportForm.css';
 
 const VibeReportForm = ({ venue, onSubmit, onCancel }) => {
+  const { user } = useContext(AuthContext);
   const [crowdDensity, setCrowdDensity] = useState('medium');
   const [noiseLevel, setNoiseLevel] = useState('moderate');
   const [energyLevel, setEnergyLevel] = useState('medium');
@@ -13,6 +15,7 @@ const VibeReportForm = ({ venue, onSubmit, onCancel }) => {
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
   const [success, setSuccess] = useState(false);
+  const [submitAnonymously, setSubmitAnonymously] = useState(false);
   const { location } = useGeolocation();
 
   const musicOptions = ['edm', 'hip_hop', 'jazz', 'rock', 'pop', 'country', 'latin', 'live_band', 'dj', 'none'];
@@ -60,7 +63,8 @@ const VibeReportForm = ({ venue, onSubmit, onCancel }) => {
         noiseLevel,
         energyLevel,
         musicTags: tagsArray,
-        location
+        location,
+        anonymous: submitAnonymously
       });
 
       if (!result.geofence.verified) {
@@ -155,6 +159,17 @@ const VibeReportForm = ({ venue, onSubmit, onCancel }) => {
             </label>
           ))}
         </div>
+      </div>
+
+      <div className="form-group">
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={submitAnonymously}
+            onChange={(e) => setSubmitAnonymously(e.target.checked)}
+          />
+          <span>Submit anonymously (your report will not be linked to your account)</span>
+        </label>
       </div>
 
       {error && <div className="error-message">{error}</div>}

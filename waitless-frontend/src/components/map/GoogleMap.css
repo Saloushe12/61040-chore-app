@@ -1,10 +1,24 @@
 .google-map-container {
   width: 100%;
-  height: 500px;
+  height: 100%;
+  min-height: 500px;
   border-radius: 8px;
   overflow: hidden;
   background-color: #1a1d3a;
   border: 1px solid #252945;
+  position: relative;
+  touch-action: pan-x pan-y pinch-zoom; /* Enable touch gestures for panning and zooming */
+  cursor: grab; /* Show grab cursor */
+}
+
+.google-map-container:active {
+  cursor: grabbing; /* Show grabbing cursor when dragging */
+}
+
+/* Ensure the Google Maps canvas fills the container */
+.google-map-container > div {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Custom button styling for the geolocation control */

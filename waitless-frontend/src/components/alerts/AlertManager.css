@@ -1,8 +1,9 @@
 .alert-manager {
-  background: white;
-  border-radius: 8px;
+  background: rgba(26, 29, 58, 0.95);
+  border: 2px solid rgba(168, 85, 247, 0.3);
+  border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
 }
 
 .alert-manager-header {
@@ -14,34 +15,38 @@
 
 .alert-manager-header h3 {
   margin: 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.3rem;
+  font-weight: 700;
 }
 
 .create-alert-btn {
-  background: #667eea;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
 .create-alert-btn:hover {
-  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.5);
 }
 
 .alert-form {
-  background: #f8f9fa;
+  background: rgba(10, 14, 39, 0.6);
+  border: 1px solid rgba(168, 85, 247, 0.2);
   padding: 1.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 1.5rem;
 }
 
 .alert-form-description {
-  color: #666;
+  color: var(--text-secondary);
   margin: 0 0 1.5rem 0;
   font-size: 0.95rem;
 }
@@ -53,7 +58,7 @@
 .form-section label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 0.95rem;
 }
@@ -67,18 +72,21 @@
 .input-with-unit input {
   flex: 0 0 120px;
   padding: 0.75rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  background: rgba(10, 14, 39, 0.8);
+  border: 2px solid rgba(168, 85, 247, 0.2);
+  border-radius: 8px;
   font-size: 1rem;
+  color: var(--text-primary);
 }
 
 .input-with-unit input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
 }
 
 .input-unit {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -90,9 +98,10 @@
 .crowd-button {
   flex: 1;
   padding: 0.75rem;
-  border: 2px solid #e0e0e0;
-  background: white;
-  border-radius: 6px;
+  border: 2px solid rgba(168, 85, 247, 0.2);
+  background: rgba(10, 14, 39, 0.8);
+  color: var(--text-primary);
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   text-transform: capitalize;
@@ -100,53 +109,59 @@
 }
 
 .crowd-button:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: #a855f7;
+  color: #c4b5fd;
+  transform: translateY(-2px);
 }
 
 .crowd-button.selected {
-  background: #667eea;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   color: white;
-  border-color: #667eea;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
 .form-section select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  background: rgba(10, 14, 39, 0.8);
+  border: 2px solid rgba(168, 85, 247, 0.2);
+  border-radius: 8px;
   font-size: 1rem;
-  background: white;
+  color: var(--text-primary);
   cursor: pointer;
 }
 
 .form-section select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
 }
 
 .submit-alert-btn {
   width: 100%;
   padding: 0.75rem;
-  background: #667eea;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
   margin-top: 0.5rem;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
 .submit-alert-btn:hover {
-  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.5);
 }
 
 .alerts-loading,
 .alerts-empty {
   text-align: center;
   padding: 2rem;
-  color: #999;
+  color: var(--text-secondary);
 }
 
 .alerts-list {
@@ -160,14 +175,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border-left: 3px solid #667eea;
-  transition: background 0.2s;
+  background: rgba(10, 14, 39, 0.6);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-left: 3px solid #a855f7;
+  border-radius: 12px;
+  transition: all 0.3s;
 }
 
 .alert-item:hover {
-  background: #e9ecef;
+  background: rgba(10, 14, 39, 0.8);
+  border-color: rgba(168, 85, 247, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
 }
 
 .alert-info {
@@ -176,12 +195,12 @@
 
 .alert-venue {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 0.25rem;
 }
 
 .alert-condition {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
 }
@@ -191,27 +210,50 @@
 }
 
 .status-active {
-  color: #28a745;
+  color: #10b981;
   font-weight: 600;
 }
 
 .status-inactive {
-  color: #999;
+  color: var(--text-muted);
+}
+
+.alert-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.edit-alert-btn {
+  background: none;
+  border: none;
+  color: #a855f7;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+  transition: all 0.2s;
+}
+
+.edit-alert-btn:hover {
+  color: #c4b5fd;
+  transform: scale(1.1);
 }
 
 .delete-alert-btn {
   background: none;
   border: none;
-  color: #dc3545;
+  color: #ef4444;
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
   line-height: 1;
-  transition: color 0.2s;
+  transition: all 0.2s;
 }
 
 .delete-alert-btn:hover {
-  color: #c82333;
+  color: #f87171;
+  transform: scale(1.1);
 }
 
 @media (max-width: 768px) {

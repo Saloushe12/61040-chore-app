@@ -10,6 +10,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [role, setRole] = useState('patron'); // Add role state
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -34,7 +35,7 @@ const Login = () => {
 
     try {
       if (isRegister) {
-        await register(email, password, displayName, 'patron');
+        await register(email, password, displayName, role);
       } else {
         await login(email, password);
       }
@@ -64,6 +65,29 @@ const Login = () => {
               placeholder="Enter your name"
               required={isRegister}
             />
+          )}
+
+          {isRegister && (
+            <div className="form-group">
+              <label htmlFor="role-select" className="input-label">
+                Account Type
+              </label>
+              <select
+                id="role-select"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="role-select"
+                required
+              >
+                <option value="patron">Patron (Regular User)</option>
+                <option value="venue_operator">Venue Operator</option>
+              </select>
+              <p className="role-description">
+                {role === 'patron' 
+                  ? 'As a patron, you can browse venues, submit reports, and set up alerts.'
+                  : 'As a venue operator, you can claim and manage venues, create events, and update wait times.'}
+              </p>
+            </div>
           )}
 
           <Input
@@ -121,6 +145,7 @@ const Login = () => {
               setIsRegister(!isRegister);
               setError('');
               setPassword(''); // Clear password when switching modes
+              setRole('patron'); // Reset role when switching modes
             }}
           >
             {isRegister ? 'Sign In' : 'Sign Up'}

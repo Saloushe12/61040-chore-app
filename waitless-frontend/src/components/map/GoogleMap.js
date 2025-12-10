@@ -17,6 +17,8 @@ const GoogleMap = ({ venues, onVenueClick, userLocation, onMapLoad, onBoundsChan
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [locationPermissionStatus, setLocationPermissionStatus] = useState('prompt'); // 'prompt', 'granted', 'denied'
   const requestLocationPermissionRef = useRef(null);
+  const hasInitialFitBounds = useRef(false); // Track if we've done initial fitBounds
+  const isUserInteracting = useRef(false); // Track if user is actively panning/zooming
 
   // Helper function to check if Google Maps is fully loaded
   const checkGoogleMapsReady = () => {
@@ -211,7 +213,7 @@ const GoogleMap = ({ venues, onVenueClick, userLocation, onMapLoad, onBoundsChan
     };
     
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization&callback=${callbackName}`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization&callback=${callbackName}&loading=async`;
     script.async = true;
     script.defer = true;
     
@@ -239,6 +241,13 @@ const GoogleMap = ({ venues, onVenueClick, userLocation, onMapLoad, onBoundsChan
       return;
     }
 
+    // Ensure the map container has proper dimensions before initializing
+    const container = mapRef.current;
+    if (!container || container.offsetHeight === 0 || container.offsetWidth === 0) {
+      // Container not ready yet, skip initialization (will retry on next render)
+      return;
+    }
+
     // Default center (can be overridden by user location)
     const defaultCenter = { lat: -34.397, lng: 150.644 };
     
@@ -251,6 +260,12 @@ const GoogleMap = ({ venues, onVenueClick, userLocation, onMapLoad, onBoundsChan
       const googleMap = new window.google.maps.Map(mapRef.current, {
         center: center,
         zoom: userLocation ? 14 : 6,
+        gestureHandling: 'greedy', // Allow panning and zooming with mouse/touch
+        draggable: true, // Enable dragging
+        zoomControl: true, // Show zoom controls
+        mapTypeControl: false, // Hide map type control
+        streetViewControl: false, // Hide street view control
+        fullscreenControl: false, // Hide fullscreen control
         styles: [
           {
             featureType: 'all',
@@ -300,17 +315,44 @@ const GoogleMap = ({ venues, onVenueClick, userLocation, onMapLoad, onBoundsChan
       }
 
       // Add bounds_changed listener if callback provided
+      // Debounce to avoid excessive callbacks during panning/zooming
       if (onBoundsChange) {
+        let boundsChangeTimeout = null;
         googleMap.addListener('bounds_changed', () => {
-          const bounds = googleMap.getBounds();
-          if (bounds) {
-            onBoundsChange({
-              north: bounds.getNorthEast().lat(),
-              south: bounds.getSouthWest().lat(),
-              east: bounds.getNorthEast().lng(),
-              west: bounds.getSouthWest().lng()
-            });
+          // Clear previous timeout
+          if (boundsChangeTimeout) {
+            clearTimeout(boundsChangeTimeout);
           }
+          // Debounce the callback to avoid excessive updates
+          boundsChangeTimeout = setTimeout(() => {
+            if (!isUserInteracting.current) {
+              const bounds = googleMap.getBounds();
+              if (bounds) {
+                onBoundsChange({
+                  north: bounds.getNorthEast().lat(),
+                  south: bounds.getSouthWest().lat(),
+                  east: bounds.getNorthEast().lng(),
+                  west: bounds.getSouthWest().lng()
+                });
+              }
+            }
+          }, 500); // Wait 500ms after last bounds change
+        });
+
+        // Track user interaction to prevent callbacks during active panning/zooming
+        googleMap.addListener('dragstart', () => {
+          isUserInteracting.current = true;
+        });
+        googleMap.addListener('dragend', () => {
+          setTimeout(() => {
+            isUserInteracting.current = false;
+          }, 100);
+        });
+        googleMap.addListener('zoom_changed', () => {
+          isUserInteracting.current = true;
+          setTimeout(() => {
+            isUserInteracting.current = false;
+          }, 100);
         });
       }
 
@@ -359,25 +401,30 @@ const GoogleMap = ({ venues, onVenueClick, userLocation, onMapLoad, onBoundsChan
       infoWindow.open(googleMap);
     };
 
-    locationButton.addEventListener('click', () => {
-      // Request location again when button is clicked
-      requestLocationPermission(googleMap, infoWin);
-    });
-  } catch (error) {
-    console.error('Error initializing Google Map:', error);
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [mapsLoaded, onMapLoad, onBoundsChange]);
+      locationButton.addEventListener('click', () => {
+        // Request location again when button is clicked
+        requestLocationPermission(googleMap, infoWin);
+      });
+    } catch (error) {
+      console.error('Error initializing Google Map:', error);
+      setMapError('Failed to initialize map. Please refresh the page.');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapsLoaded, onMapLoad, onBoundsChange]);
 
 // Update map center when user location changes (only if map is already initialized)
+// But don't reset if user is actively interacting with the map
 useEffect(() => {
-  if (map && userLocation && !userMarker) {
+  if (map && userLocation && !userMarker && !isUserInteracting.current) {
     const pos = {
       lat: userLocation.latitude,
       lng: userLocation.longitude,
     };
-    map.setCenter(pos);
-    map.setZoom(14);
+    // Only set center/zoom if user isn't actively panning/zooming
+    if (!isUserInteracting.current) {
+      map.setCenter(pos);
+      map.setZoom(14);
+    }
 
     // Create user marker
     const marker = new window.google.maps.Marker({
@@ -516,8 +563,9 @@ useEffect(() => {
 
     setMarkers(newMarkers);
 
-    // Fit map bounds to show all venues (and user location if available)
-    if (hasValidVenues && newMarkers.length > 0) {
+    // Only fit bounds on initial load, not on every venue update
+    // This prevents resetting the map position when user is panning/zooming
+    if (hasValidVenues && newMarkers.length > 0 && !hasInitialFitBounds.current) {
       // Add user location to bounds if available
       if (userLocation && userMarker) {
         bounds.extend({
@@ -526,7 +574,7 @@ useEffect(() => {
         });
       }
 
-      // Fit bounds with padding
+      // Fit bounds with padding (only once on initial load)
       map.fitBounds(bounds, {
         padding: 50, // Add padding around markers
       });
@@ -535,6 +583,9 @@ useEffect(() => {
       if (newMarkers.length === 1 && !userLocation) {
         map.setZoom(15);
       }
+
+      // Mark that we've done initial fitBounds
+      hasInitialFitBounds.current = true;
     }
 
     // Cleanup function
@@ -625,7 +676,7 @@ useEffect(() => {
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '500px' }}>
       {showLocationPrompt && (locationPermissionStatus === 'prompt' || locationPermissionStatus === 'denied') && (
         <div 
           style={{
@@ -644,7 +695,8 @@ useEffect(() => {
             alignItems: 'center',
             gap: '12px',
             maxWidth: '90%',
-            fontSize: '14px'
+            fontSize: '14px',
+            pointerEvents: 'auto' // Ensure the prompt itself is clickable
           }}
         >
           <span>📍 {locationPermissionStatus === 'denied' ? 'Location access was denied. Click to enable:' : 'Allow location access to see your position on the map'}</span>
@@ -685,7 +737,17 @@ useEffect(() => {
           </button>
         </div>
       )}
-      <div ref={mapRef} className="google-map-container" />
+      <div 
+        ref={mapRef} 
+        className="google-map-container"
+        style={{ 
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+          zIndex: 1,
+          pointerEvents: 'auto' // Ensure map container is interactive
+        }}
+      />
     </div>
   );
 };

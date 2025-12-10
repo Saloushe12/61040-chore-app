@@ -2,7 +2,7 @@ import api from './api';
 
 export const dashboardService = {
   async getVenueDashboard() {
-    const response = await api.get('/venues/dashboard');
+    const response = await api.get('/venues/operator/dashboard');
     return response.data;
   },
 
@@ -12,7 +12,20 @@ export const dashboardService = {
   },
 
   async claimVenue(venueId) {
-    const response = await api.post(`/venues/${venueId}/claim`);
+    const response = await api.patch(`/venues/${venueId}/claim`);
+    return response.data;
+  },
+
+  async updateVenueProfile(venueId, venueData) {
+    const response = await api.patch(`/venues/${venueId}`, venueData);
+    return response.data.venue;
+  },
+
+  async submitWaitOverride(venueId, waitMinutes) {
+    const response = await api.post('/reports/wait/override', {
+      venueId,
+      waitMinutes
+    });
     return response.data;
   }
 };

@@ -104,18 +104,19 @@ function buildVenueDashboardSync({
       // 3. Load upcoming events for this venue
       const events = await venueEventConcept._getEventsForFilters({
         venueId,
-        startDate: now,
-        endDate: null,
+        startAfter: now,
+        startBefore: null,
       });
 
       dashboardVenues.push({
+        _id: venueId, // Add _id for compatibility with frontend
         venueId,
         name: v.name,
         address: v.address,
         currentStatus: v.currentStatus,
         tags: v.tags,
         metrics,
-        upcomingEvents: events,
+        upcomingEvents: events, // Keep as upcomingEvents to match frontend
       });
     }
 

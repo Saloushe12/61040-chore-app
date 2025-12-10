@@ -6,6 +6,7 @@ const AlertManager = ({ venueId, venueName }) => {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingAlert, setEditingAlert] = useState(null);
   const [formData, setFormData] = useState({
     waitBelowMinutes: '',
     crowdDensityIn: [],
@@ -53,14 +54,29 @@ const AlertManager = ({ venueId, venueName }) => {
     }
 
     try {
-      await alertsService.createAlert(venueId, condition);
+      if (editingAlert) {
+        await alertsService.updateAlert(editingAlert._id, { condition });
+        setEditingAlert(null);
+      } else {
+        await alertsService.createAlert(venueId, condition);
+      }
       setShowForm(false);
       setFormData({ waitBelowMinutes: '', crowdDensityIn: [], eventTag: '' });
       await loadAlerts();
     } catch (err) {
-      console.error('Failed to create alert:', err);
-      alert(err.response?.data?.error || 'Failed to create alert');
+      console.error('Failed to save alert:', err);
+      alert(err.response?.data?.error || 'Failed to save alert');
     }
+  };
+
+  const handleEditAlert = (alert) => {
+    setEditingAlert(alert);
+    setFormData({
+      waitBelowMinutes: alert.condition.waitBelowMinutes || '',
+      crowdDensityIn: alert.condition.crowdDensityIn || [],
+      eventTag: alert.condition.eventTag || ''
+    });
+    setShowForm(true);
   };
 
   const handleDeleteAlert = async (alertId) => {
@@ -107,7 +123,15 @@ const AlertManager = ({ venueId, venueName }) => {
         {venueId && (
           <button 
             className="create-alert-btn"
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              if (showForm) {
+                setShowForm(false);
+                setEditingAlert(null);
+                setFormData({ waitBelowMinutes: '', crowdDensityIn: [], eventTag: '' });
+              } else {
+                setShowForm(true);
+              }
+            }}
           >
             {showForm ? 'Cancel' : '+ Create Alert'}
           </button>
@@ -117,7 +141,7 @@ const AlertManager = ({ venueId, venueName }) => {
       {showForm && (
         <form onSubmit={handleCreateAlert} className="alert-form">
           <p className="alert-form-description">
-            Get notified when conditions at {venueName} match your preferences
+            {editingAlert ? 'Edit alert conditions' : `Get notified when conditions at ${venueName} match your preferences`}
           </p>
 
           <div className="form-section">
@@ -168,7 +192,7 @@ const AlertManager = ({ venueId, venueName }) => {
           </div>
 
           <button type="submit" className="submit-alert-btn">
-            Create Alert
+            {editingAlert ? 'Update Alert' : 'Create Alert'}
           </button>
         </form>
       )}
@@ -202,13 +226,22 @@ const AlertManager = ({ venueId, venueName }) => {
                   )}
                 </div>
               </div>
-              <button
-                className="delete-alert-btn"
-                onClick={() => handleDeleteAlert(alert._id)}
-                title="Delete alert"
-              >
-                ×
-              </button>
+              <div className="alert-actions">
+                <button
+                  className="edit-alert-btn"
+                  onClick={() => handleEditAlert(alert)}
+                  title="Edit alert"
+                >
+                  ✏️
+                </button>
+                <button
+                  className="delete-alert-btn"
+                  onClick={() => handleDeleteAlert(alert._id)}
+                  title="Delete alert"
+                >
+                  ×
+                </button>
+              </div>
             </div>
           ))}
         </div>

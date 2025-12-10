@@ -127,8 +127,8 @@ function buildVenueDetailSync({
     const now = new Date();
     const events = await venueEventConcept._getEventsForFilters({
       venueId,
-      startDate: now,
-      endDate: null,
+      startAfter: now,
+      startBefore: null,
     });
 
     // 4. Load forecast from snapshots (simple wrapper around existing service)

@@ -54,7 +54,8 @@ export const useVenues = (radius = 5000, tags = null) => {
     };
 
     fetchVenues();
-  }, [location, radius, tags]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location?.latitude, location?.longitude, radius, JSON.stringify(tags)]);
 
   const refetch = async () => {
     setLoading(true);

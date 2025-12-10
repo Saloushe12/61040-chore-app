@@ -45,7 +45,12 @@ router.get(
         gridSize: gridSize ? parseInt(gridSize, 10) : undefined,
         timeWindowMinutes: timeWindowMinutes ? parseInt(timeWindowMinutes, 10) : undefined,
       });
-      res.json(result);
+      
+      // Ensure response includes both 'cells' and 'gridCells' for compatibility
+      res.json({
+        cells: result.cells || [],
+        gridCells: result.cells || [] // Alias for backward compatibility
+      });
     } catch (error) {
       console.error('Concept get heatmap error:', error);
       res.status(500).json({ error: 'Failed to get heatmap' });

@@ -101,7 +101,17 @@ function buildHeatmapSync({ waitReportConcept, vibeReportConcept }) {
     }
 
     // Only return cells with some activity to reduce payload
-    const activeCells = cells.filter((c) => c.activityScore > 0);
+    const activeCells = cells
+      .filter((c) => c.activityScore > 0)
+      .map(cell => ({
+        lat: cell.centerLat,
+        lon: cell.centerLon,
+        centerLat: cell.centerLat, // Keep for backward compatibility
+        centerLon: cell.centerLon, // Keep for backward compatibility
+        activityScore: cell.activityScore,
+        waitReportCount: cell.waitReportCount,
+        vibeReportCount: cell.vibeReportCount
+      }));
 
     return { cells: activeCells };
   };

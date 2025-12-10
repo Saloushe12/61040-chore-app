@@ -29,10 +29,22 @@ export const LocationProvider = ({ children }) => {
     };
 
     const successCallback = (position) => {
-      setLocation({
+      const newLocation = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         accuracy: position.coords.accuracy
+      };
+      
+      // Only update if location changed significantly (more than ~10 meters)
+      setLocation(prev => {
+        if (!prev) return newLocation;
+        const latDiff = Math.abs(prev.latitude - newLocation.latitude);
+        const lonDiff = Math.abs(prev.longitude - newLocation.longitude);
+        // ~10 meters threshold (roughly 0.0001 degrees)
+        if (latDiff > 0.0001 || lonDiff > 0.0001) {
+          return newLocation;
+        }
+        return prev; // Return previous to avoid unnecessary re-renders
       });
       setError(null);
       setLoading(false);

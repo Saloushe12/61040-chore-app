@@ -150,6 +150,56 @@
   margin-top: 24px;
 }
 
+.hours-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.hours-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.day-label {
+  min-width: 100px;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.hours-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.hours-inputs input[type="time"] {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(10, 14, 39, 0.6);
+  border: 2px solid rgba(168, 85, 247, 0.2);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.hours-inputs input[type="time"]:focus {
+  outline: none;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+.hours-separator {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .add-venue-form {
     padding: 24px;
@@ -157,6 +207,19 @@
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .hours-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .day-label {
+    min-width: auto;
+  }
+
+  .hours-inputs {
+    width: 100%;
   }
 }
 
