@@ -32,28 +32,38 @@
   box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
 }
 
-.filter-group {
+.events-filters .filter-group {
   margin-bottom: 1.5rem;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 1.5rem;
+  flex-wrap: nowrap !important;
+  width: 100%;
 }
 
-.filter-group:last-child {
+.events-filters .filter-group:last-child {
   margin-bottom: 0;
 }
 
-.filter-group label {
-  display: block;
+.events-filters .filter-group label {
   color: #a78bfa;
   font-weight: 600;
-  margin-bottom: 0.75rem;
   font-size: 0.95rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  min-width: fit-content;
+  flex-shrink: 0;
 }
 
 .filter-buttons {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   gap: 0.75rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  overflow-x: auto;
 }
 
 .filter-buttons button {
@@ -65,6 +75,8 @@
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .filter-buttons button:hover {
@@ -83,7 +95,9 @@
 .tag-filters {
   display: flex;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
+  overflow-x: auto;
 }
 
 .tag-btn {
@@ -111,8 +125,8 @@
 }
 
 .status-select {
-  width: 100%;
-  max-width: 300px;
+  width: auto;
+  min-width: 200px;
   padding: 0.6rem 1rem;
   background: rgba(255, 255, 255, 0.05);
   border: 2px solid rgba(167, 139, 250, 0.3);
