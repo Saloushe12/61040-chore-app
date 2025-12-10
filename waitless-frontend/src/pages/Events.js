@@ -176,7 +176,7 @@ const Events = () => {
                 <div
                   key={event._id}
                   className="event-card"
-                  onClick={() => navigate(`/venues/${event.venueId}`)}
+                  onClick={() => navigate(`/venue/${event.venueId}`)}
                 >
                   <div className="event-card-header">
                     <h3>{event.title}</h3>
