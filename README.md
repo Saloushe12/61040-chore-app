@@ -282,3 +282,5 @@ After running the seed script, you'll have 25+ Boston venues available for testi
 ## License
 
 MIT
+
+[Final Design Summary](./waitless-backend/designsummaryfinal.md)
