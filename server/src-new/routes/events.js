@@ -25,20 +25,21 @@ router.get(
   [
     optionalAuth,
     query('venueId').optional().isMongoId(),
-    query('tags').optional(),
-    query('startDate').optional().isISO8601(),
-    query('endDate').optional().isISO8601(),
+    query('tag').optional(),
+    query('status').optional(),
+    query('startAfter').optional().isISO8601(),
+    query('startBefore').optional().isISO8601(),
     validate,
   ],
   async (req, res) => {
     try {
-      const { venueId, tags, startDate, endDate } = req.query;
-      const tagArray = tags ? tags.split(',') : [];
+      const { tag, status, startAfter, startBefore } = req.query;
 
       const result = await eventFilterSync({
-        eventTag: tagArray.length === 1 ? tagArray[0] : null,
-        startDate,
-        endDate,
+        eventTag: tag || null,
+        status: status || null,
+        startAfter: startAfter || null,
+        startBefore: startBefore || null,
       });
 
       res.json(result);

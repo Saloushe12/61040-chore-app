@@ -9,11 +9,15 @@ import SuggestedVenueCard from '../components/venue/SuggestedVenueCard';
 import GoogleMap from '../components/map/GoogleMap';
 import AddVenueForm from '../components/venue/AddVenueForm';
 import RecentReportsSummary from '../components/reports/RecentReportsSummary';
+import HeatmapLayer from '../components/map/HeatmapLayer';
 import './Home.css';
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('venues'); // 'venues', 'map', or 'events'
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [mapInstance, setMapInstance] = useState(null);
+  const [mapBounds, setMapBounds] = useState(null);
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [selectedEventTag, setSelectedEventTag] = useState('');
@@ -257,11 +261,30 @@ const Home = () => {
           )}
 
           {activeTab === 'map' && (
-            <GoogleMap
-              venues={venues}
-              onVenueClick={handleVenueClick}
-              userLocation={location}
-            />
+            <div className="map-container-wrapper">
+              <div className="map-controls">
+                <button
+                  className={`heatmap-toggle ${showHeatmap ? 'active' : ''}`}
+                  onClick={() => setShowHeatmap(!showHeatmap)}
+                >
+                  {showHeatmap ? '🔥 Hide Heatmap' : '🗺️ Show Heatmap'}
+                </button>
+              </div>
+              <GoogleMap
+                venues={venues}
+                onVenueClick={handleVenueClick}
+                userLocation={location}
+                onMapLoad={(map) => setMapInstance(map)}
+                onBoundsChange={(bounds) => setMapBounds(bounds)}
+              />
+              {mapInstance && (
+                <HeatmapLayer
+                  map={mapInstance}
+                  bounds={mapBounds}
+                  enabled={showHeatmap}
+                />
+              )}
+            </div>
           )}
 
           {activeTab === 'events' && (
