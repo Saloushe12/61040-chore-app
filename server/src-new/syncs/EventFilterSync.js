@@ -24,17 +24,15 @@ const { ObjectId } = require('../utils/database');
  * @returns {Function} eventFilterSync({ eventTag, startDate?, endDate? }) → { events }
  */
 function buildEventFilterSync({ venueEventConcept, venueConcept }) {
-  return async function eventFilterSync({ eventTag, startDate, endDate }) {
-    const start = startDate ? new Date(startDate) : undefined;
-    const end = endDate ? new Date(endDate) : undefined;
-
+  return async function eventFilterSync({ eventTag, status, startAfter, startBefore }) {
     const tags = eventTag ? [eventTag] : [];
 
     const events = await venueEventConcept._getEventsForFilters({
       venueId: null,
       tags,
-      startDate: start,
-      endDate: end,
+      status: status || null,
+      startAfter: startAfter ? new Date(startAfter) : null,
+      startBefore: startBefore ? new Date(startBefore) : null,
     });
 
     // Optionally hydrate basic venue info for each event

@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import VenueDetail from './pages/VenueDetail';
 import UserProfile from './pages/UserProfile';
 import VenueDashboard from './pages/VenueDashboard';
+import Events from './pages/Events';
 import './App.css';
 
 // Protected Route Component
@@ -35,6 +36,7 @@ const NavBar = () => {
         </div>
         <div className="nav-links">
           <a href="/" className="nav-link">Home</a>
+          <a href="/events" className="nav-link">Events</a>
           <a href="/profile" className="nav-link">Profile</a>
           {user.role === 'venue_operator' && (
             <a href="/dashboard" className="nav-link">Dashboard</a>
@@ -86,6 +88,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <VenueDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <Events />
             </ProtectedRoute>
           }
         />

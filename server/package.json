@@ -7,7 +7,8 @@
     "start": "node src-new/server.js",
     "dev": "nodemon src-new/server.js",
     "test": "jest",
-    "seed": "node src-new/utils/seed.js"
+    "seed": "node src-new/utils/seed.js",
+    "seed:events": "node src-new/utils/seedEvents.js"
   },
   "keywords": [
     "nightlife",

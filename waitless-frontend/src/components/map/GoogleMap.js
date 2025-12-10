@@ -5,7 +5,7 @@ import './GoogleMap.css';
 // prompted by your browser. If you see the error "The Geolocation service
 // failed.", it means you probably did not give permission for the browser to
 // locate you.
-const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
+const GoogleMap = ({ venues, onVenueClick, userLocation, onMapLoad, onBoundsChange }) => {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
   const [infoWindow, setInfoWindow] = useState(null);
@@ -208,7 +208,7 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
     };
     
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=${callbackName}`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization&callback=${callbackName}`;
     script.async = true;
     script.defer = true;
     
@@ -291,6 +291,26 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
       setMap(googleMap);
       setInfoWindow(infoWin);
 
+      // Call onMapLoad callback if provided
+      if (onMapLoad) {
+        onMapLoad(googleMap);
+      }
+
+      // Add bounds_changed listener if callback provided
+      if (onBoundsChange) {
+        googleMap.addListener('bounds_changed', () => {
+          const bounds = googleMap.getBounds();
+          if (bounds) {
+            onBoundsChange({
+              north: bounds.getNorthEast().lat(),
+              south: bounds.getSouthWest().lat(),
+              east: bounds.getNorthEast().lng(),
+              west: bounds.getSouthWest().lng()
+            });
+          }
+        });
+      }
+
       // Show location prompt banner when map loads
       // Browsers require user gesture to show permission prompt, so we show a banner first
       if (navigator.geolocation && !locationPermissionRequested) {
@@ -340,48 +360,48 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
       // Request location again when button is clicked
       requestLocationPermission(googleMap, infoWin);
     });
-    } catch (error) {
-      console.error('Error initializing Google Map:', error);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapsLoaded]);
+  } catch (error) {
+    console.error('Error initializing Google Map:', error);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [mapsLoaded, onMapLoad, onBoundsChange]);
 
-  // Update map center when user location changes (only if map is already initialized)
-  useEffect(() => {
-    if (map && userLocation && !userMarker) {
-      const pos = {
-        lat: userLocation.latitude,
-        lng: userLocation.longitude,
-      };
-      map.setCenter(pos);
-      map.setZoom(14);
+// Update map center when user location changes (only if map is already initialized)
+useEffect(() => {
+  if (map && userLocation && !userMarker) {
+    const pos = {
+      lat: userLocation.latitude,
+      lng: userLocation.longitude,
+    };
+    map.setCenter(pos);
+    map.setZoom(14);
 
-      // Create user marker
-      const marker = new window.google.maps.Marker({
-        position: pos,
-        map: map,
-        title: 'Current Location',
-        label: {
-          text: 'Current Location',
-          color: '#1e40af',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          className: 'current-location-label'
-        },
-        icon: {
-          url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-        },
-      });
-      setUserMarker(marker);
-    } else if (map && userLocation && userMarker) {
-      // Update existing marker position
-      const pos = {
-        lat: userLocation.latitude,
-        lng: userLocation.longitude,
-      };
-      userMarker.setPosition(pos);
-    }
-  }, [map, userLocation, userMarker]);
+    // Create user marker
+    const marker = new window.google.maps.Marker({
+      position: pos,
+      map: map,
+      title: 'Current Location',
+      label: {
+        text: 'Current Location',
+        color: '#1e40af',
+        fontSize: '12px',
+        fontWeight: 'bold',
+        className: 'current-location-label'
+      },
+      icon: {
+        url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+      },
+    });
+    setUserMarker(marker);
+  } else if (map && userLocation && userMarker) {
+    // Update existing marker position
+    const pos = {
+      lat: userLocation.latitude,
+      lng: userLocation.longitude,
+    };
+    userMarker.setPosition(pos);
+  }
+}, [map, userLocation, userMarker]);
 
   // Add venue markers
   useEffect(() => {

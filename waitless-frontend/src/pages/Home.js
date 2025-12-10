@@ -8,11 +8,15 @@ import SuggestedVenueCard from '../components/venue/SuggestedVenueCard';
 import GoogleMap from '../components/map/GoogleMap';
 import AddVenueForm from '../components/venue/AddVenueForm';
 import RecentReportsSummary from '../components/reports/RecentReportsSummary';
+import HeatmapLayer from '../components/map/HeatmapLayer';
 import './Home.css';
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState('venues'); // 'venues' or 'map'
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [mapInstance, setMapInstance] = useState(null);
+  const [mapBounds, setMapBounds] = useState(null);
   const { venues, loading, error, refetch, addVenue } = useVenues();
   const { suggestions, loading: suggestionsLoading, error: suggestionsError, refetch: refetchSuggestions } = useSuggestedVenues();
   const { location, error: locationError } = useGeolocation();
@@ -196,11 +200,30 @@ const Home = () => {
           )}
 
           {activeTab === 'map' && (
-            <GoogleMap
-              venues={venues}
-              onVenueClick={handleVenueClick}
-              userLocation={location}
-            />
+            <div className="map-container-wrapper">
+              <div className="map-controls">
+                <button
+                  className={`heatmap-toggle ${showHeatmap ? 'active' : ''}`}
+                  onClick={() => setShowHeatmap(!showHeatmap)}
+                >
+                  {showHeatmap ? '🔥 Hide Heatmap' : '🗺️ Show Heatmap'}
+                </button>
+              </div>
+              <GoogleMap
+                venues={venues}
+                onVenueClick={handleVenueClick}
+                userLocation={location}
+                onMapLoad={(map) => setMapInstance(map)}
+                onBoundsChange={(bounds) => setMapBounds(bounds)}
+              />
+              {mapInstance && (
+                <HeatmapLayer
+                  map={mapInstance}
+                  bounds={mapBounds}
+                  enabled={showHeatmap}
+                />
+              )}
+            </div>
           )}
         </div>
       </div>

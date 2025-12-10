@@ -180,15 +180,21 @@ class VenueEventConcept {
    * @param {Object} params
    * @param {string} [params.venueId]
    * @param {string[]} [params.tags]
-   * @param {Date} [params.startDate]
-   * @param {Date} [params.endDate]
+   * @param {string} [params.status]
+   * @param {Date} [params.startAfter]
+   * @param {Date} [params.startBefore]
    * @returns {Promise<Array<any>>}
    */
-  async _getEventsForFilters({ venueId, tags, startDate, endDate }) {
+  async _getEventsForFilters({ venueId, tags, status, startAfter, startBefore }) {
     const events = await this._events();
-    const query = {
-      status: { $in: ['scheduled', 'in_progress'] },
-    };
+    const query = {};
+
+    // Filter by status
+    if (status) {
+      query.status = status;
+    } else {
+      query.status = { $in: ['scheduled', 'in_progress'] };
+    }
 
     if (venueId) {
       query.venueId = new ObjectId(venueId);
@@ -198,12 +204,15 @@ class VenueEventConcept {
       query.tags = { $in: tags };
     }
 
-    if (startDate || endDate) {
+    // Time range filtering - use $gte and $lte for proper date comparison
+    if (startAfter || startBefore) {
       query.startTime = {};
-      if (startDate) query.startTime.$gte = startDate;
-      if (endDate) query.startTime.$lte = endDate;
-    } else {
-      query.startTime = { $gte: new Date() };
+      if (startAfter) {
+        query.startTime.$gte = new Date(startAfter);
+      }
+      if (startBefore) {
+        query.startTime.$lte = new Date(startBefore);
+      }
     }
 
     return events
