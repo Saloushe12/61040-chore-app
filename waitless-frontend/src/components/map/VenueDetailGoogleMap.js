@@ -21,7 +21,9 @@ const VenueDetailGoogleMap = ({ venue, userLocation }) => {
 
   // Load Google Maps script
   useEffect(() => {
-    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    // Check both process.env (build-time) and window.env (runtime, for Render)
+    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || 
+                   (typeof window !== 'undefined' && window.env && window.env.REACT_APP_GOOGLE_MAPS_API_KEY);
     
     if (!apiKey) {
       setMapError('Google Maps API key not configured');

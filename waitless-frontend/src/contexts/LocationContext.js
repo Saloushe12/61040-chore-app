@@ -14,13 +14,18 @@ export const LocationProvider = ({ children }) => {
       return;
     }
 
-    // First try with high accuracy, then fallback to lower accuracy if it times out
     let watchId;
+    let fallbackAttempted = false;
 
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 20000, // Increased to 20 seconds for production
-      maximumAge: 60000 // Allow cached position up to 1 minute
+    // On production/HTTPS, start with lower accuracy for faster response
+    // On localhost, try high accuracy first
+    const isProduction = window.location.protocol === 'https:' || 
+                         !window.location.hostname.includes('localhost');
+    
+    const initialOptions = {
+      enableHighAccuracy: !isProduction, // Start with lower accuracy on production
+      timeout: isProduction ? 30000 : 20000, // 30s on production, 20s on local
+      maximumAge: isProduction ? 300000 : 60000 // 5 min cache on production, 1 min on local
     };
 
     const successCallback = (position) => {
@@ -34,27 +39,44 @@ export const LocationProvider = ({ children }) => {
     };
 
     const errorCallback = (err) => {
-      // If high accuracy times out, try with lower accuracy
-      if (err.code === err.TIMEOUT && options.enableHighAccuracy) {
-        console.log('High accuracy timeout, trying with lower accuracy...');
+      // Ignore network location provider errors (403 from Google's location service)
+      // These are just warnings from browser fallback mechanisms and don't affect functionality
+      if (err.message && err.message.includes('googleapis.com')) {
+        console.log('Ignoring network location provider error (browser fallback mechanism)');
+        // Don't set error, let it continue trying
+        return;
+      }
+
+      // If we haven't tried fallback yet and we're using high accuracy, try lower accuracy
+      if (!fallbackAttempted && initialOptions.enableHighAccuracy && (err.code === err.TIMEOUT || err.code === err.POSITION_UNAVAILABLE)) {
+        console.log('High accuracy failed, trying with lower accuracy...');
+        fallbackAttempted = true;
         navigator.geolocation.clearWatch(watchId);
         
-        // Fallback to lower accuracy
+        // Fallback to lower accuracy with longer timeout
         const fallbackOptions = {
           enableHighAccuracy: false,
-          timeout: 15000,
-          maximumAge: 300000 // Allow cached position up to 5 minutes
+          timeout: 30000, // 30 seconds for fallback
+          maximumAge: 600000 // Allow cached position up to 10 minutes
         };
         
         watchId = navigator.geolocation.watchPosition(
           successCallback,
           (fallbackErr) => {
+            // Ignore network location provider errors in fallback too
+            if (fallbackErr.message && fallbackErr.message.includes('googleapis.com')) {
+              console.log('Ignoring network location provider error in fallback');
+              return;
+            }
+
             // Provide more user-friendly error messages
-            let errorMessage = 'Location access timed out. ';
+            let errorMessage = '';
             if (fallbackErr.code === fallbackErr.TIMEOUT) {
-              errorMessage += 'Please check your location settings and try refreshing the page.';
+              errorMessage = 'Location access is taking longer than expected. Please ensure location services are enabled and try refreshing the page.';
             } else if (fallbackErr.code === fallbackErr.PERMISSION_DENIED) {
               errorMessage = 'Location access denied. Please enable location permissions in your browser settings.';
+            } else if (fallbackErr.code === fallbackErr.POSITION_UNAVAILABLE) {
+              errorMessage = 'Location unavailable. Please check your device location settings.';
             } else {
               errorMessage = fallbackErr.message || 'Unable to get your location.';
             }
@@ -65,15 +87,15 @@ export const LocationProvider = ({ children }) => {
         );
       } else {
         // Provide more user-friendly error messages
-        let errorMessage = 'Location error: ';
+        let errorMessage = '';
         if (err.code === err.TIMEOUT) {
-          errorMessage += 'Timeout expired. Please enable location access and try refreshing the page.';
+          errorMessage = 'Location access is taking longer than expected. Please ensure location services are enabled and try refreshing the page.';
         } else if (err.code === err.PERMISSION_DENIED) {
           errorMessage = 'Location access denied. Please enable location permissions in your browser settings.';
         } else if (err.code === err.POSITION_UNAVAILABLE) {
           errorMessage = 'Location unavailable. Please check your device location settings.';
         } else {
-          errorMessage += err.message || 'Unable to get your location.';
+          errorMessage = err.message || 'Unable to get your location.';
         }
         setError(errorMessage);
         setLoading(false);
@@ -83,10 +105,14 @@ export const LocationProvider = ({ children }) => {
     watchId = navigator.geolocation.watchPosition(
       successCallback,
       errorCallback,
-      options
+      initialOptions
     );
 
-    return () => navigator.geolocation.clearWatch(watchId);
+    return () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
   }, []);
 
   return (

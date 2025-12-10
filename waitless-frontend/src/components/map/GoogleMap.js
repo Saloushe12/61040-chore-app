@@ -139,10 +139,13 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
 
   // Load Google Maps script
   useEffect(() => {
-    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    // Check both process.env (build-time) and window.env (runtime, for Render)
+    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || 
+                   (typeof window !== 'undefined' && window.env && window.env.REACT_APP_GOOGLE_MAPS_API_KEY);
     
     if (!apiKey) {
       console.warn('REACT_APP_GOOGLE_MAPS_API_KEY is not set. Google Maps will not load.');
+      console.warn('Note: On Render, make sure REACT_APP_GOOGLE_MAPS_API_KEY is set in your frontend service environment variables and the service is redeployed.');
       return;
     }
 
@@ -546,7 +549,7 @@ const GoogleMap = ({ venues, onVenueClick, userLocation }) => {
           <div>
             <p>{mapError}</p>
             <p style={{ fontSize: '14px', marginTop: '8px', color: '#9ca3af' }}>
-              Make sure REACT_APP_GOOGLE_MAPS_API_KEY is set in your environment variables.
+              Make sure REACT_APP_GOOGLE_MAPS_API_KEY is set in your frontend service environment variables on Render, then redeploy the service.
             </p>
           </div>
         </div>

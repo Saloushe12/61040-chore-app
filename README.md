@@ -95,7 +95,29 @@ Backend will run on `http://localhost:5000`
 
 ### Seed Database (Optional but Recommended)
 
-**Boston Venues Seed:**
+**Quick Seed (Venues Only):**
+```bash
+cd server
+npm run seed
+```
+
+**Full Seed (Realistic Dummy Data):**
+```bash
+cd server
+npm run seed:full
+```
+
+This will create:
+- 20 test users (patrons) and 5 operators
+- Venues (if none exist)
+- Wait reports and vibe reports over the past 2 weeks
+- Upcoming and past events
+- Alert subscriptions
+- Historical snapshots for forecasting
+
+Test accounts: `user1@example.com` through `user20@example.com` (password: `password123`)
+
+**Boston Venues Seed (Alternative):**
 ```bash
 cd server
 npm run seed
