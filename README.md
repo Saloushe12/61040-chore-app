@@ -284,3 +284,7 @@ After running the seed script, you'll have 25+ Boston venues available for testi
 MIT
 
 [Final Design Summary](./waitless-backend/designsummaryfinal.md)
+
+[Reflections](./waitless-backend/reflection.md)
+
+[Final Video](https://streamable.com/cb5vv7)
