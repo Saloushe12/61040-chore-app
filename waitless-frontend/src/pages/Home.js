@@ -15,17 +15,13 @@ import './Home.css';
 const Home = () => {
   const [activeTab, setActiveTab] = useState('venues'); // 'venues', 'map', or 'events'
   const [showAddForm, setShowAddForm] = useState(false);
-<<<<<<< HEAD
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [mapInstance, setMapInstance] = useState(null);
   const [mapBounds, setMapBounds] = useState(null);
-||||||| b2e99b4
-=======
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [selectedEventTag, setSelectedEventTag] = useState('');
   const [eventTimeRange, setEventTimeRange] = useState('tonight');
->>>>>>> 995dd5b46ae5392912246b64ffc7b2682bbe68ab
   const { venues, loading, error, refetch, addVenue } = useVenues();
   const { suggestions, loading: suggestionsLoading, error: suggestionsError, refetch: refetchSuggestions } = useSuggestedVenues();
   const { location, error: locationError } = useGeolocation();
