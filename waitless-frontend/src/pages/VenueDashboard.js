@@ -13,6 +13,7 @@ const VenueDashboard = () => {
   const [error, setError] = useState(null);
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [showEventForm, setShowEventForm] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
 
   useEffect(() => {
     // Redirect if not a venue operator
@@ -156,11 +157,61 @@ const VenueDashboard = () => {
                         <div className="event-time">
                           {new Date(event.startTime).toLocaleString()}
                         </div>
+                        <div className={`event-status-badge status-${event.status}`}>
+                          {event.status.replace('_', ' ')}
+                        </div>
                       </div>
                       <div className="event-tags">
                         {event.tags?.map((tag, idx) => (
                           <span key={idx} className="event-tag">{tag}</span>
                         ))}
+                      </div>
+                      <div className="event-actions">
+                        {event.status === 'scheduled' && (
+                          <button
+                            className="event-action-btn mark-progress-btn"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                await eventsService.markEventInProgress(event._id || event.eventId);
+                                await loadDashboard();
+                              } catch (err) {
+                                alert(err.response?.data?.error || 'Failed to mark event in progress');
+                              }
+                            }}
+                          >
+                            Mark Active
+                          </button>
+                        )}
+                        <button
+                          className="event-action-btn edit-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedVenue(venue);
+                            setEditingEvent(event);
+                            setShowEventForm(true);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        {event.status !== 'cancelled' && (
+                          <button
+                            className="event-action-btn cancel-btn"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (window.confirm('Are you sure you want to cancel this event?')) {
+                                try {
+                                  await eventsService.cancelEvent(event._id || event.eventId);
+                                  await loadDashboard();
+                                } catch (err) {
+                                  alert(err.response?.data?.error || 'Failed to cancel event');
+                                }
+                              }
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -185,9 +236,11 @@ const VenueDashboard = () => {
       {showEventForm && selectedVenue && (
         <EventFormModal
           venue={selectedVenue}
+          event={editingEvent}
           onClose={() => {
             setShowEventForm(false);
             setSelectedVenue(null);
+            setEditingEvent(null);
           }}
           onSubmit={(eventData) => handleCreateEvent(selectedVenue._id, eventData)}
         />
@@ -196,20 +249,31 @@ const VenueDashboard = () => {
   );
 };
 
-const EventFormModal = ({ venue, onClose, onSubmit }) => {
+const EventFormModal = ({ venue, event, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    startTime: '',
-    endTime: '',
-    tags: []
+    title: event?.title || '',
+    description: event?.description || '',
+    startTime: event?.startTime ? new Date(event.startTime).toISOString().slice(0, 16) : '',
+    endTime: event?.endTime ? new Date(event.endTime).toISOString().slice(0, 16) : '',
+    tags: event?.tags || []
   });
 
   const availableTags = ['trivia', 'live_music', 'sports', 'karaoke', 'dj', 'comedy', 'special'];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (event) {
+      // Update existing event
+      try {
+        await eventsService.updateEvent(event._id || event.eventId, formData);
+        onClose();
+        window.location.reload(); // Refresh to show updated event
+      } catch (err) {
+        alert(err.response?.data?.error || 'Failed to update event');
+      }
+    } else {
+      onSubmit(formData);
+    }
   };
 
   const toggleTag = (tag) => {
@@ -225,7 +289,7 @@ const EventFormModal = ({ venue, onClose, onSubmit }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Create Event for {venue.name}</h2>
+          <h2>{event ? 'Edit Event' : 'Create Event'} for {venue.name}</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit} className="event-form">
@@ -292,7 +356,7 @@ const EventFormModal = ({ venue, onClose, onSubmit }) => {
               Cancel
             </button>
             <button type="submit" className="submit-btn">
-              Create Event
+              {event ? 'Update' : 'Create'} Event
             </button>
           </div>
         </form>

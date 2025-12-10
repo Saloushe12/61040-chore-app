@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useVenues } from '../hooks/useVenues';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useSuggestedVenues } from '../hooks/useSuggestedVenues';
+import { eventsService } from '../services/events';
 import VenueList from '../components/venue/VenueList';
 import SuggestedVenueCard from '../components/venue/SuggestedVenueCard';
 import GoogleMap from '../components/map/GoogleMap';
@@ -12,11 +13,19 @@ import HeatmapLayer from '../components/map/HeatmapLayer';
 import './Home.css';
 
 const Home = () => {
-  const [activeTab, setActiveTab] = useState('venues'); // 'venues' or 'map'
+  const [activeTab, setActiveTab] = useState('venues'); // 'venues', 'map', or 'events'
   const [showAddForm, setShowAddForm] = useState(false);
+<<<<<<< HEAD
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [mapInstance, setMapInstance] = useState(null);
   const [mapBounds, setMapBounds] = useState(null);
+||||||| b2e99b4
+=======
+  const [events, setEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [selectedEventTag, setSelectedEventTag] = useState('');
+  const [eventTimeRange, setEventTimeRange] = useState('tonight');
+>>>>>>> 995dd5b46ae5392912246b64ffc7b2682bbe68ab
   const { venues, loading, error, refetch, addVenue } = useVenues();
   const { suggestions, loading: suggestionsLoading, error: suggestionsError, refetch: refetchSuggestions } = useSuggestedVenues();
   const { location, error: locationError } = useGeolocation();
@@ -88,6 +97,56 @@ const Home = () => {
     });
   }, [venues, suggestionIds]);
 
+  // Fetch events when events tab is active
+  useEffect(() => {
+    if (activeTab === 'events') {
+      fetchEvents();
+    }
+  }, [activeTab, selectedEventTag, eventTimeRange]);
+
+  const fetchEvents = async () => {
+    setEventsLoading(true);
+    try {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(23, 59, 59, 999);
+
+      let startDate, endDate;
+      if (eventTimeRange === 'tonight') {
+        startDate = now.toISOString();
+        endDate = new Date(now.setHours(23, 59, 59, 999)).toISOString();
+      } else if (eventTimeRange === 'tomorrow') {
+        const tomorrowStart = new Date(now);
+        tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+        tomorrowStart.setHours(0, 0, 0, 0);
+        startDate = tomorrowStart.toISOString();
+        endDate = tomorrow.toISOString();
+      } else {
+        startDate = now.toISOString();
+        endDate = tomorrow.toISOString();
+      }
+
+      const filters = {
+        startDate,
+        endDate
+      };
+      if (selectedEventTag) {
+        filters.tags = selectedEventTag;
+      }
+
+      const data = await eventsService.getEvents(filters);
+      setEvents(data || []);
+    } catch (err) {
+      console.error('Failed to fetch events:', err);
+      setEvents([]);
+    } finally {
+      setEventsLoading(false);
+    }
+  };
+
+  const eventTags = ['trivia', 'live_music', 'sports', 'dance', 'comedy', 'karaoke', 'dj', 'live_band', 'open_mic'];
+
   return (
     <div className="home-container">
       <header className="home-header">
@@ -109,6 +168,12 @@ const Home = () => {
               onClick={() => setActiveTab('map')}
             >
               Map View
+            </button>
+            <button
+              className={`tab ${activeTab === 'events' ? 'active' : ''}`}
+              onClick={() => setActiveTab('events')}
+            >
+              Events
             </button>
           </div>
         </div>
@@ -222,6 +287,74 @@ const Home = () => {
                   bounds={mapBounds}
                   enabled={showHeatmap}
                 />
+              )}
+            </div>
+          )}
+
+          {activeTab === 'events' && (
+            <div className="events-tab-content">
+              <div className="events-filters">
+                <div className="filter-group">
+                  <label>Event Tag:</label>
+                  <select
+                    value={selectedEventTag}
+                    onChange={(e) => setSelectedEventTag(e.target.value)}
+                  >
+                    <option value="">All Events</option>
+                    {eventTags.map(tag => (
+                      <option key={tag} value={tag}>{tag.replace('_', ' ')}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="filter-group">
+                  <label>Time Range:</label>
+                  <select
+                    value={eventTimeRange}
+                    onChange={(e) => setEventTimeRange(e.target.value)}
+                  >
+                    <option value="tonight">Tonight</option>
+                    <option value="tomorrow">Tomorrow</option>
+                    <option value="all">Next 24 Hours</option>
+                  </select>
+                </div>
+              </div>
+
+              {eventsLoading ? (
+                <div className="venue-list-message">Loading events...</div>
+              ) : events.length > 0 ? (
+                <div className="events-list">
+                  {events.map((event) => (
+                    <div
+                      key={event.eventId || event._id}
+                      className="event-card"
+                      onClick={() => navigate(`/venue/${event.venueId}`)}
+                    >
+                      <div className="event-header">
+                        <h3>{event.title}</h3>
+                        <span className={`event-status status-${event.status}`}>
+                          {event.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <p className="event-venue">{event.venueName}</p>
+                      <p className="event-address">{event.venueAddress}</p>
+                      {event.description && (
+                        <p className="event-description">{event.description}</p>
+                      )}
+                      <div className="event-time">
+                        {new Date(event.startTime).toLocaleString()} - {new Date(event.endTime).toLocaleString()}
+                      </div>
+                      {event.tags && event.tags.length > 0 && (
+                        <div className="event-tags">
+                          {event.tags.map((tag, idx) => (
+                            <span key={idx} className="event-tag">{tag.replace('_', ' ')}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="venue-list-message">No events found</div>
               )}
             </div>
           )}

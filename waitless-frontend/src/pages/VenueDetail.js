@@ -15,6 +15,7 @@ const VenueDetail = () => {
   const navigate = useNavigate();
   const [venue, setVenue] = useState(null);
   const [metrics, setMetrics] = useState(null);
+  const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showWaitForm, setShowWaitForm] = useState(false);
@@ -31,10 +32,20 @@ const VenueDetail = () => {
       const data = await venuesService.getVenueById(id);
       setVenue(data.venue);
       setMetrics(data.metrics);
+      setForecast(data.forecast);
       setLoading(false);
     } catch (err) {
       setError(err.message);
       setLoading(false);
+    }
+  };
+
+  const fetchForecast = async (dayOfWeek = null) => {
+    try {
+      const data = await venuesService.getVenueForecast(id, dayOfWeek);
+      setForecast(data);
+    } catch (err) {
+      console.error('Failed to fetch forecast:', err);
     }
   };
 
@@ -133,6 +144,54 @@ const VenueDetail = () => {
           <p className="no-data">No recent data available. Be the first to report!</p>
         )}
       </div>
+
+      {forecast && forecast.forecast && forecast.forecast.length > 0 && (
+        <div className="forecast-section">
+          <h2>Peak Time Forecast</h2>
+          <div className="forecast-info">
+            <p className="forecast-confidence">
+              Confidence: {forecast.confidence ? `${Math.round(forecast.confidence * 100)}%` : 'N/A'} 
+              ({forecast.dataPoints || 0} data points)
+            </p>
+            <select 
+              onChange={(e) => fetchForecast(e.target.value ? parseInt(e.target.value) : null)}
+              className="forecast-day-selector"
+            >
+              <option value="">All Days</option>
+              <option value="0">Sunday</option>
+              <option value="1">Monday</option>
+              <option value="2">Tuesday</option>
+              <option value="3">Wednesday</option>
+              <option value="4">Thursday</option>
+              <option value="5">Friday</option>
+              <option value="6">Saturday</option>
+            </select>
+          </div>
+          <div className="forecast-chart">
+            {forecast.forecast.map((hour, idx) => {
+              const intensity = Math.min(hour.peakScore / 100, 1);
+              const barHeight = `${intensity * 100}%`;
+              const color = intensity > 0.7 ? '#ef4444' : intensity > 0.4 ? '#f59e0b' : '#10b981';
+              return (
+                <div key={idx} className="forecast-hour">
+                  <div className="forecast-bar-container">
+                    <div 
+                      className="forecast-bar" 
+                      style={{ height: barHeight, backgroundColor: color }}
+                      title={`${hour.hour}:00 - Score: ${hour.peakScore}`}
+                    />
+                  </div>
+                  <div className="forecast-hour-label">{hour.hour}:00</div>
+                  <div className="forecast-score">{hour.peakScore}</div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="forecast-note">
+            Higher scores indicate busier times based on historical data
+          </p>
+        </div>
+      )}
 
       <div className="actions-section">
         <h2>Report Conditions</h2>

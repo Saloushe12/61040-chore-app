@@ -8,7 +8,14 @@ import Home from './pages/Home';
 import VenueDetail from './pages/VenueDetail';
 import UserProfile from './pages/UserProfile';
 import VenueDashboard from './pages/VenueDashboard';
+<<<<<<< HEAD
 import Events from './pages/Events';
+||||||| b2e99b4
+=======
+import Alerts from './pages/Alerts';
+import Heatmap from './pages/Heatmap';
+import AlertNotification from './components/alerts/AlertNotification';
+>>>>>>> 995dd5b46ae5392912246b64ffc7b2682bbe68ab
 import './App.css';
 
 // Protected Route Component
@@ -38,6 +45,8 @@ const NavBar = () => {
           <a href="/" className="nav-link">Home</a>
           <a href="/events" className="nav-link">Events</a>
           <a href="/profile" className="nav-link">Profile</a>
+          <a href="/alerts" className="nav-link">Alerts</a>
+          <a href="/heatmap" className="nav-link">Heatmap</a>
           {user.role === 'venue_operator' && (
             <a href="/dashboard" className="nav-link">Dashboard</a>
           )}
@@ -57,6 +66,7 @@ function AppRoutes() {
   return (
     <BrowserRouter>
       <NavBar />
+      <AlertNotification />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
@@ -91,6 +101,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+<<<<<<< HEAD
         <Route
           path="/events"
           element={
@@ -99,6 +110,25 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+||||||| b2e99b4
+=======
+        <Route
+          path="/alerts"
+          element={
+            <ProtectedRoute>
+              <Alerts />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/heatmap"
+          element={
+            <ProtectedRoute>
+              <Heatmap />
+            </ProtectedRoute>
+          }
+        />
+>>>>>>> 995dd5b46ae5392912246b64ffc7b2682bbe68ab
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>

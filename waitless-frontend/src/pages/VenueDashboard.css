@@ -195,6 +195,82 @@
   padding: 0.75rem;
   border-radius: 6px;
   border-left: 3px solid #667eea;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.event-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.event-action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mark-progress-btn {
+  background: #10b981;
+  color: white;
+}
+
+.mark-progress-btn:hover {
+  background: #059669;
+}
+
+.edit-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #2563eb;
+}
+
+.cancel-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #dc2626;
+}
+
+.event-status-badge {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-scheduled {
+  background: rgba(59, 130, 246, 0.2);
+  color: #2563eb;
+}
+
+.status-in_progress {
+  background: rgba(16, 185, 129, 0.2);
+  color: #059669;
+}
+
+.status-cancelled {
+  background: rgba(239, 68, 68, 0.2);
+  color: #dc2626;
 }
 
 .event-info {

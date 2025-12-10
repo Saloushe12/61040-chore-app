@@ -19,5 +19,10 @@ export const eventsService = {
   async cancelEvent(id) {
     const response = await api.delete(`/events/${id}`);
     return response.data;
+  },
+
+  async markEventInProgress(id) {
+    const response = await api.patch(`/events/${id}`, { status: 'in_progress' });
+    return response.data.event;
   }
 };

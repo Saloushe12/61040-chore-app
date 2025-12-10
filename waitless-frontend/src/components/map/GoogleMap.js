@@ -125,8 +125,8 @@ const GoogleMap = ({ venues, onVenueClick, userLocation, onMapLoad, onBoundsChan
         }
       },
       {
-        enableHighAccuracy: true,
-        timeout: 15000,
+        enableHighAccuracy: false, // Use lower accuracy for faster response on deployed sites
+        timeout: 20000, // Increased timeout for production
         maximumAge: 0
       }
     );
