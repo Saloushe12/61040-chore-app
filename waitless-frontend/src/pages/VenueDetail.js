@@ -6,6 +6,7 @@ import { useGeolocation } from '../hooks/useGeolocation';
 import WaitReportForm from '../components/reports/WaitReportForm';
 import VibeReportForm from '../components/reports/VibeReportForm';
 import VenueDetailGoogleMap from '../components/map/VenueDetailGoogleMap';
+import AlertManager from '../components/alerts/AlertManager';
 import Button from '../components/common/Button';
 import './VenueDetail.css';
 
@@ -143,6 +144,15 @@ const VenueDetail = () => {
             Report Vibe
           </Button>
         </div>
+        <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+          <Button variant="secondary" onClick={() => navigate('/profile')}>
+            📊 View My Report History
+          </Button>
+        </div>
+      </div>
+
+      <div className="alerts-manager-section">
+        <AlertManager venueId={id} venueName={venue.name} />
       </div>
 
       {showWaitForm && (

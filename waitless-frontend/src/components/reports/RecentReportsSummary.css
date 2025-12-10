@@ -1,0 +1,119 @@
+.recent-reports-summary {
+  background: rgba(26, 29, 58, 0.95);
+  border: 2px solid rgba(168, 85, 247, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.summary-header h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.view-all-btn {
+  background: rgba(167, 139, 250, 0.1);
+  border: 2px solid rgba(167, 139, 250, 0.3);
+  color: #a78bfa;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.view-all-btn:hover {
+  background: rgba(167, 139, 250, 0.2);
+  border-color: #a78bfa;
+  transform: translateY(-2px);
+}
+
+.recent-reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.recent-report-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s;
+}
+
+.recent-report-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(4px);
+}
+
+.report-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.report-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.report-venue {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-detail {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+}
+
+.report-time {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .recent-reports-summary {
+    padding: 1rem;
+  }
+
+  .summary-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .view-all-btn {
+    width: 100%;
+  }
+
+  .recent-report-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .report-time {
+    align-self: flex-end;
+  }
+}

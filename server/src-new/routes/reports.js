@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { auth, requireVenueOperator } = require('../middleware/auth');
+const { auth, optionalAuth, requireVenueOperator } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 const { verifyGeofence } = require('../services/geofence');
 const { triggerAlertsForVenue } = require('../services/notifications');
@@ -27,6 +27,7 @@ const contributionHistorySync = buildUserContributionHistorySync({
 router.post(
   '/wait',
   [
+    optionalAuth,
     body('venueId').isMongoId(),
     body('reportedWaitMinutes')
       .toInt()
@@ -185,6 +186,7 @@ router.post(
 router.post(
   '/vibe',
   [
+    optionalAuth,
     body('venueId')
       .isMongoId()
       .withMessage('Invalid venue ID'),

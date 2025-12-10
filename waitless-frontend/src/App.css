@@ -83,13 +83,38 @@ body {
 .nav-brand {
   font-size: 32px;
   font-weight: 900;
+  letter-spacing: -1.5px;
+  text-transform: uppercase;
+}
+
+.nav-brand a {
   background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: -1.5px;
-  text-transform: uppercase;
   filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.5));
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.2s;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.nav-link:hover {
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.1);
 }
 
 .nav-user {

@@ -7,6 +7,7 @@ import VenueList from '../components/venue/VenueList';
 import SuggestedVenueCard from '../components/venue/SuggestedVenueCard';
 import GoogleMap from '../components/map/GoogleMap';
 import AddVenueForm from '../components/venue/AddVenueForm';
+import RecentReportsSummary from '../components/reports/RecentReportsSummary';
 import './Home.css';
 
 const Home = () => {
@@ -117,6 +118,8 @@ const Home = () => {
         <div className="content-area">
           {activeTab === 'venues' && (
             <div className="venues-tab-content">
+              <RecentReportsSummary />
+              
               <div className="venues-header">
                 <button
                   className="add-venue-btn"

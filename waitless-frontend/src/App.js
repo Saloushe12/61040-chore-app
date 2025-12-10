@@ -6,6 +6,8 @@ import { SocketProvider } from './contexts/SocketContext';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import VenueDetail from './pages/VenueDetail';
+import UserProfile from './pages/UserProfile';
+import VenueDashboard from './pages/VenueDashboard';
 import './App.css';
 
 // Protected Route Component
@@ -28,7 +30,16 @@ const NavBar = () => {
   return (
     <nav className="navbar">
       <div className="nav-content">
-        <div className="nav-brand">WaitLess</div>
+        <div className="nav-brand">
+          <a href="/">WaitLess</a>
+        </div>
+        <div className="nav-links">
+          <a href="/" className="nav-link">Home</a>
+          <a href="/profile" className="nav-link">Profile</a>
+          {user.role === 'venue_operator' && (
+            <a href="/dashboard" className="nav-link">Dashboard</a>
+          )}
+        </div>
         <div className="nav-user">
           <span className="user-name">{user.displayName || user.email}</span>
           <button onClick={logout} className="logout-btn">
@@ -59,6 +70,22 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <VenueDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <VenueDashboard />
             </ProtectedRoute>
           }
         />
